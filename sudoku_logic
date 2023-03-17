@@ -1,0 +1,2 @@
+#Game initialization, calling all functions to create grid, create widgets, etc.
+#Conditions for the logic of the game, (when all boxes finished, game finished,etc)
