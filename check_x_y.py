@@ -1,11 +1,5 @@
-#TO DO
-# BIMI - 
-#Tip: 
-#Removable - 
-print("-----------------------------------------------------------------")
-print("-----------------------------------------------------------------")
+#display_table() is not needed, it's just to visualize the game a little for the mini code test at the bottom
 
-# box = {(x,y,z):val}
 example_sudoku = {(1,1,1):0 ,
         (2,1,1):0 ,
         (3,1,1):0 ,
