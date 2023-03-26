@@ -86,21 +86,20 @@ example_sudoku = {(1,1,1):0 ,
 copied_dicto = example_sudoku.copy()
 
 def display_table(dicto):
-        #sudoku_list = []
         for y in range (1,10):    # Y axis rows
-                row = []
+                if y == 4 or y == 7:
+                        print("|-----------|")
+                row = "|"
                 for z in range (1,4):    # Z boxes (advancing horizontally)
                         for x in range (1,4):    # X axis columns
                                 if y <= 3:
-                                        row += [dicto[(x,y,z)]]
+                                        row += str([dicto[(x,y,z)]][0])
                                 elif y <= 6:
-                                        row += [dicto[(x,y-3,z+3)]]   #because Y is defined until 3
+                                        row += str([dicto[(x,y-3,z+3)]][0])  #because Y is defined until 3
                                 else:
-                                        row += [dicto[(x,y-6,z+6)]]
-
-                print(row)
-                #sudoku_list.append(row)
-        #return sudoku_list
+                                        row += str([dicto[(x,y-6,z+6)]][0])
+                        row += "|"
+                print(row.strip(",").strip("'"))
 
 sudoku_list=display_table(example_sudoku)
 
