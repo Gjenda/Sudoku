@@ -9,13 +9,19 @@ class Grid:
     max = 30 #number of grids stored in the file
     f = open("dictionaryfile.txt","rt") #open file, treat like text
     a = Random.randit(min, max)
+    self.dictionary= (dictionary)((f.read(a*100))
     
  def compareGrids(grid abc, int x, int y, int z)
     if self.difficulty != abc.difficulty :
       return false
     else :
-      
-        
+      result = True
+      comp_keys = [x,y,z]
+      for key in comp_keys:
+        if self.dictionary.get(key) != abc.dictionary.get(key):
+          result = False
+      return result
     
   def deleteGrid ():
     self.dictionary.clear()
+    
