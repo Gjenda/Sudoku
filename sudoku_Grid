@@ -1,0 +1,21 @@
+class Grid:
+  def __init__(self, state, difficulty):
+    self.dictionary = createDictionary()
+    self.state = True; #True -> playing, False -> over 
+    self.difficulty = difficulty; #1,2, or 3
+    
+  def createDictionary ():
+    min = 1
+    max = 30 #number of grids stored in the file
+    f = open("dictionaryfile.txt","rt") #open file, treat like text
+    a = Random.randit(min, max)
+    
+ def compareGrids(grid abc, int x, int y, int z)
+    if self.difficulty != abc.difficulty :
+      return false
+    else :
+      
+        
+    
+  def deleteGrid ():
+    self.dictionary.clear()
