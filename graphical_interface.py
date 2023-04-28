@@ -42,8 +42,7 @@ class Fenetre_avec_graphique():
         
         self.blankspace4 = tk.Label(root, text="")
         self.blankspace4.configure(bg='lightblue')
-        self.blankspace4.pack()
-             
+        self.blankspace4.pack()             
         
         self.easy_button = tk.Button(root, text = "EASY", height = self.button_height, width = self.button_width, font = "Calibri 11 bold")
         self.easy_button.pack()
@@ -93,19 +92,25 @@ class Fenetre_avec_graphique():
         self.sudoku_window.configure(bg='gray85')
         self.creation_grid()
         self.creation_widgets_game()
-        
+        #print(self.entries)
+        #self.trying_numbers()        
         
     def creation_widgets_game(self):
         """
         """
-        self.exit_button = tk.Button(self.sudoku_window, text="EXIT", font="Calibri 12 bold", command = self.sudoku_window.destroy)
+        self.exit_button = tk.Button(self.sudoku_window, text="EXIT", font="Calibri 12 bold")
         self.exit_button.grid(row=10, column = 9)
+        self.exit_button.bind('<Button-1>', self.close_windows)
         
         self.solution_button = tk.Button(self.sudoku_window, text="SOLUTION", font="Calibri 12 bold")
         self.solution_button.grid(row=10, column = 1, columnspan = 2)
         
-        self.hint_button = tk.Button(self.sudoku_window, text="HINT", font="Calibri 12 bold")
-        self.hint_button.grid(row=10, column=3)
+        self.start_hint_button = tk.Button(self.sudoku_window, text="START HINT", font="Calibri 12 bold")
+        self.start_hint_button.grid(row=10, column=3, columnspan=3)
+        
+        
+        self.stop_hint_button = tk.Button(self.sudoku_window, text="STOP HINT", font="Calibri 12 bold")
+        self.stop_hint_button.grid(row=10, column=5, columnspan=3)
         
         self.time = 0
         self.time_text = tk.Label(self.sudoku_window, text = "TIME : ", font = 'Calibri 12 bold')
@@ -120,11 +125,17 @@ class Fenetre_avec_graphique():
         self.timer_label.config(text=str(self.time))
         self.sudoku_window.after(1000, self.start_timer)
         
+    def close_windows(self, event):
+        self.sudoku_window.destroy()
+        self.racine.destroy()
         
         
+        
+   
     def creation_grid(self):
         self.cells = {}
         self.entries = []
+        self.box_positions = []
         for row in range(1, 10):
             for column in range(1, 10):
                 if ((row in (1,2,3,7,8,9) and column in (4,5,6)) or (row in (4,5,6) and column in (1,2,3,7,8,9))):
@@ -134,12 +145,59 @@ class Fenetre_avec_graphique():
                 cell = tk.Frame(self.sudoku_window, highlightbackground=color, highlightcolor=color, highlightthickness=1, width=50, height=50, padx=3,  pady=3, background='black')
                 cell.grid(row=row, column=column)
                 self.cells[(row, column)] = cell
-
-
-                e = tk.Entry(self.cells[row, column], justify='left')
-                e.place(height=40, width=40)
                 
-                self.entries.append(e)
+                
+                e = tk.Entry(self.cells[row, column], justify='center')
+                e.place(height=40, width=40) #Entry box a little bit smaller than background to see the colors
+                
+            
+            
+    def test_creation_grid(self):
+        self.cells = {}
+        self.entries = []
+        self.box_positions = []
+        for box in range(1, 10):
+            for column in range(1, 4):
+                for row in range(1,4):
+                    """
+                    if ((row in (1,2,3,7,8,9) and column in (4,5,6)) or (row in (4,5,6) and column in (1,2,3,7,8,9))):
+                        color='skyblue1'
+                    else:
+                        color='royalblue1'
+                    
+                    """
+                    cell = tk.Frame(self.sudoku_window, highlightbackground=color, highlightcolor=color, highlightthickness=1, width=50, height=50, padx=3,  pady=3, background='black')
+                    cell.grid(row=row, column=column)
+                    self.cells[(row, column)] = cell
+                    
+                    self.entry_text = tk.StringVar()
+                    self.entry_text.trace('w', self.text_changed())
+                    
+                    e = tk.Entry(self.cells[row, column], justify='center', textvariable = self.entry_text)
+                    e.place(height=40, width=40) #Entry box a little bit smaller than background to see the colors
+                    
+                    self.entries.append(e)
+                    #self.trying_numbers()            
+            
+            
+            
+            
+            
+            
+            
+    def text_changed(self):
+        print(self.entry_text.get())
+                
+    def trying_numbers(self):
+        self.sudoku_window.bind('<Button-1>', self.verification)
+    
+    def verification(self, event):
+        box = event.num
+        print("Box", box, "clicked")
+        
+        
+        
+    
                 
     def solve_grid(self, event):
        """
