@@ -5,7 +5,7 @@
 
 
 #### if you want to test out the program;
-#### copy and paste any of the dictionaries from ExampleDictionaries (for now hard wont work)
+#### copy and paste any of the dictionaries from extra_ExampleDictionaries (for now hard wont work)
 #### change names of dictionaires example; rename 'medium_sudoku' to 'sudoku'
 #### also, for each sudoku, you have its solution to confirm
 
