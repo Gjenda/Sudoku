@@ -6,27 +6,49 @@
 
 #### if you want to test out the program;
 #### copy and paste any of the dictionaries from extra_ExampleDictionaries (for now hard wont work)
-#### change names of dictionaires example; rename 'medium_sudoku' to 'sudoku'
+#### change names of dictionaires example; rename 'medium_sudoku' to 'self.sudoku'
 #### also, for each sudoku, you have its solution to confirm
 
 
-global x 
-global y
-global z
-global val
+class Solver():
+   
+    def __init__(self):
 
-x = 0
-y = 0
-z = 0
-val = 0
+        global x
+        global y
+        global z
+        global val
 
-####sudoku = {#copy-paste dicto here}
+        x = 0
+        y = 0
+        z = 0
+        val = 0
+        
+        #### self.sudoku = {#copy-paste dicto here}
+        
+        self.initial_sudoku = self.sudoku.copy()
+        self.found_solution = self.sudoku.copy()     #the table that is going to be progressively solved
+
+        self.display_table(self.sudoku)  # REMOVE
+        print("")
+        
+        self.unsolved_dicto = self.create_unsolved_dicto()
 
 
-initial_sudoku = sudoku.copy()
-found_solution = sudoku.copy()     #the table that is going to be progressively solved
 
-def display_table(dicto):    # REMOVE
+        #Test program    - ALL REMOVE
+        print("The solver is computing...")
+        self.game_over = self.solver()
+
+        if self.game_over:
+                print("GAME OVER")
+                print("")
+                print("Here's the final solved sudoku.")
+                self.display_table(self.found_solution)    
+
+
+
+    def display_table(dicto):    # REMOVE
         for y in range (1,10):    # Y axis rows
                 if y == 4 or y == 7:
                         print("|-----------|")
@@ -43,18 +65,15 @@ def display_table(dicto):    # REMOVE
                 print(row.strip(",").strip("'"))     #remove "," and "'"
 
 
-sudoku_list=display_table(sudoku)    # REMOVE
-
-
-def create_unsolved_dicto():     #keys are positions of unsolved boxes, value is list of potential valid numbers placable in that box
+    def create_unsolved_dicto(self):     #keys are positions of unsolved boxes, value is list of potential valid numbers placable in that box
         unfinished_dicto = {}
-        for key, value in found_solution.items():
+        for key, value in self.found_solution.items():
                 if value == 0:
                         unfinished_dicto[key] = [1,2,3,4,5,6,7,8,9]
         return unfinished_dicto
 
 
-def control_cases():
+    def control_cases(self):
         box_for_x = 0     #initiate final result
         if z == 1 or  z == 4 or  z == 7:     #if box is on the left give 1
                 box_for_x = 1
@@ -73,125 +92,124 @@ def control_cases():
         return (box_for_x, box_for_y) 
 
 
-def control_loop_x(k,l):
+    def control_loop_x(self,k,l):
         for a in range(1,4):
                 for c in range(z+k,z+l):
-                        if found_solution[(a,y,c)] == found_solution[(x,y,z)] and (a,y,c) != (x,y,z):   #not to compare with itself
+                        if self.found_solution[(a,y,c)] == self.found_solution[(x,y,z)] and (a,y,c) != (x,y,z):   #not to compare with itself
                                 return False
         return True
 
-def control_loop_y(k,l):
+    def control_loop_y(self,k,l):
         for b in range(1,4):
                 for c in range(z+k,z+l, 3):     #step = 3
-                        if found_solution[(x,b,c)] == found_solution[(x,y,z)] and (x,b,c) != (x,y,z):
+                        if self.found_solution[(x,b,c)] == self.found_solution[(x,y,z)] and (x,b,c) != (x,y,z):
                                 return False
         return True
 
-def control_loop_z():
+    def control_loop_z(self):
         for b in range(1,4):
                 for a in range(1,4):
-                        if found_solution[(a,b,z)] == found_solution[(x,y,z)] and (a,b,z) != (x,y,z):
+                        if self.found_solution[(a,b,z)] == self.found_solution[(x,y,z)] and (a,b,z) != (x,y,z):
                                 return False
         return True
 
 
-# control() always takes the global values x,y,z,val and checks if they are valid to play
-def control():     #returns True if position is safe to play, False if number is unplacable
+    # control(self) always takes the global values x,y,z,val and checks if they are valid to play
+    def control(self):     #returns True if position is safe to play, False if number is unplacable
         result = True     #initiated True meaning no same values have been found yet
-        (x_verify, y_verify) = control_cases()     #check which box you're in, to know which other ones to compare to
+        (x_verify, y_verify) = self.control_cases()     #check which box you're in, to know which other ones to compare to
         if x_verify == 1:     #have to check the other two boxes on the right
-                result = control_loop_x(0,3)
+                result = self.control_loop_x(0,3)
         elif x_verify == 2:
-                result = control_loop_x(-1,2)
+                result = self.control_loop_x(-1,2)
         else:   #x_verify == 3
-                result = control_loop_x(-2, 1)
+                result = self.control_loop_x(-2, 1)
         if result == True:
                 if y_verify == 1:
-                        result = control_loop_y(0,7)
+                        result = self.control_loop_y(0,7)
                 elif y_verify == 2:
-                        result = control_loop_y(-3,4)
+                        result = self.control_loop_y(-3,4)
                 else:
-                        result = control_loop_y(-6, 1)
+                        result = self.control_loop_y(-6, 1)
         if result == True:
-                result = control_loop_z()
+                result = self.control_loop_z()
         
         return result
        
 
-def place_move():     #place the move (even if at least temporarily), to check if its valid   ???
-        found_solution[(x,y,z)] = val
+    def place_move(self):   #place the move (even if at least temporarily), to check if its valid   ???
+        self.found_solution[(x,y,z)] = val
 
-def remove_move():     #if move not valid, set value back to 0 -> unsolved
-        found_solution[(x,y,z)] = 0
+    def remove_move(self):   #if move not valid, set value back to 0 -> unsolved
+        self.found_solution[(x,y,z)] = 0
 
 
-def update_possibilities():     
+    def update_possibilities(self):
         global x,y,z,val
         possibilities_to_remove = []   #list of tuples remembering in which position, which possibility to remove
-        for (a,b,c),value in unsolved_dicto.items():
+        for (a,b,c),value in self.unsolved_dicto.items():
                 x = a
                 y = b
                 z = c
                 for i in value:
                         val = i
-                        place_move()
-                        res = control()
+                        self.place_move()
+                        res = self.control()
                         if res == False:
                                 possibilities_to_remove.append(((a,b,c),i))
-                        remove_move()
+                        self.remove_move()
                         
         for (a,b,c),value in possibilities_to_remove:
-                unsolved_dicto[(a,b,c)].remove(value)    #number can't be placed here, so its removed from the list of possibilities
+                self.unsolved_dicto[(a,b,c)].remove(value)    #number can't be placed here, so its removed from the list of possibilities
 
 
-def place_known_solns():
+    def place_known_solns(self):
         global x,y,z
         positions_to_replace = []
-        for (a,b,c),value in unsolved_dicto.items():
+        for (a,b,c),value in self.unsolved_dicto.items():
                 x = a
                 y = b
                 z = c
                 if len(value) == 1:
                         positions_to_replace.append((a,b,c))
-                        found_solution[(x,y,z)] = value[0]
-        finalize_soln(positions_to_replace)
+                        self.found_solution[(x,y,z)] = value[0]
+        self.finalize_soln(positions_to_replace)
 
 
-def finalize_soln(positions_to_replace):
+    def finalize_soln(self, positions_to_replace):
         for position in positions_to_replace:
-                del unsolved_dicto[position]
+                del self.unsolved_dicto[position]
 
 
 
-
-def only_soln_x():
+    def only_soln_x(self):
         global x,y,z
         positions_to_replace = []
         for b in range(1,4):
                 y = b
-                (result,value) = check_only_x()
+                (result,value) = self.check_only_x()
                 if result == True:
                         positions_to_replace.append((x,y,z))
-                        found_solution[(x,y,z)] = value
-        finalize_soln(positions_to_replace)
+                        self.found_solution[(x,y,z)] = value
+        self.finalize_soln(positions_to_replace)
 
 
-def check_only_x():  #gives True if its the only one in the row
+    def check_only_x(self):   #gives True if its the only one in the row
         global x,y,z
         result = False
         for a in range(1,4):
                 x = a
                 for c in range(1,10):
                         z = c
-                        (x_verify, y_verify) = control_cases()     #check which box you're in, to know which other ones to compare to
+                        (x_verify, y_verify) = self.control_cases()     #check which box you're in, to know which other ones to compare to
                         try:
-                                for i in unsolved_dicto[(a,y,c)]:
+                                for i in self.unsolved_dicto[(a,y,c)]:
                                         if x_verify == 1:     #have to check the other two boxes on the right
-                                                result = control_loop_x_v2(0,3,i)
+                                                result = self.control_loop_x_v2(0,3,i)
                                         elif x_verify == 2:
-                                                result = control_loop_x_v2(-1,2,i)
+                                                result = self.control_loop_x_v2(-1,2,i)
                                         else:
-                                                result = control_loop_x_v2(-2,1,i)
+                                                result = self.control_loop_x_v2(-2,1,i)
                                         if result == True:
                                                 return (result,i)
                         except:
@@ -199,45 +217,45 @@ def check_only_x():  #gives True if its the only one in the row
         return (result,0)   #random value, won't be used
                         
 
-def control_loop_x_v2(k,l,i):
+    def control_loop_x_v2(self,k,l,i):
         for a in range(1,4):
                 for c in range(z+k,z+l):
                         try:
-                                if (a,y,c) != (x,y,z) and i in unsolved_dicto[(a,y,c)]:   #not to compare with itself
+                                if (a,y,c) != (x,y,z) and i in self.unsolved_dicto[(a,y,c)]:   #not to compare with itself
                                         return False
                         except:
                                 pass
         return True
 
 
-def only_soln_y():
+    def only_soln_y(self):
         global x,y,z
         positions_to_replace = []
         for a in range(1,4):
                 x = a
-                (result,value) = check_only_y()
+                (result,value) = self.check_only_y()
                 if result == True:
                         positions_to_replace.append((x,y,z))
-                        found_solution[(x,y,z)] = value
-        finalize_soln(positions_to_replace)
+                        self.found_solution[(x,y,z)] = value
+        self.finalize_soln(positions_to_replace)
 
 
-def check_only_y():
+    def check_only_y(self):
         global x,y,z
         result = False
         for b in range(1,4):
                 y = b
                 for c in range(1,10):
                         z = c
-                        (x_verify, y_verify) = control_cases()
+                        (x_verify, y_verify) = self.control_cases()
                         try:
-                                for i in unsolved_dicto[(x,b,c)]:
+                                for i in self.unsolved_dicto[(x,b,c)]:
                                         if y_verify == 1:
-                                                result = control_loop_y_v2(0,7,i)
+                                                result = self.control_loop_y_v2(0,7,i)
                                         elif y_verify == 2:
-                                                result = control_loop_y_v2(-3,4,i)
+                                                result = self.control_loop_y_v2(-3,4,i)
                                         else:
-                                                result = control_loop_y_v2(-6,1,i)
+                                                result = self.control_loop_y_v2(-6,1,i)
                                         if result == True:
                                                 return (result,i)
                         except:
@@ -245,30 +263,30 @@ def check_only_y():
         return (result,0)
 
 
-def control_loop_y_v2(k,l,i):
+    def control_loop_y_v2(self,k,l,i):
         for b in range(1,4):
                 for c in range(z+k,z+l, 3):   #step = 3
                         try:
-                                if (x,b,c) != (x,y,z) and i in unsolved_dicto[(x,b,c)]:
+                                if (x,b,c) != (x,y,z) and i in self.unsolved_dicto[(x,b,c)]:
                                         return False
                         except:
                                 pass
         return True
 
 
-def only_soln_z():
+    def only_soln_z(self):
         global x,y,z
         positions_to_replace = []
         for c in range(1,10):
                 z = c
-                (result,value) = check_only_z()
+                (result,value) = self.check_only_z()
                 if result == True:
                         positions_to_replace.append((x,y,z))
-                        found_solution[(x,y,z)] = value
-        finalize_soln(positions_to_replace)
+                        self.found_solution[(x,y,z)] = value
+        self.finalize_soln(positions_to_replace)
 
 
-def check_only_z():
+    def check_only_z(self):
         global x,y,z
         result = False
         for a in range(1,4):
@@ -276,8 +294,8 @@ def check_only_z():
                 for b in range(1,4):
                         y = b
                         try:
-                                for i in unsolved_dicto[(x,b,z)]:
-                                        result = control_loop_z_v2(i)
+                                for i in self.unsolved_dicto[(x,b,z)]:
+                                        result = self.control_loop_z_v2(i)
                                         if result == True:
                                                 return (result,i)
                         except:
@@ -285,46 +303,29 @@ def check_only_z():
         return (result,0)
 
 
-def control_loop_z_v2(i):
+    def control_loop_z_v2(self,i):
         for b in range(1,4):
                 for a in range(1,4):
                         try:
-                                if (a,b,z) != (x,y,z) and i in unsolved_dicto[(a,b,z)]:
+                                if (a,b,z) != (x,y,z) and i in self.unsolved_dicto[(a,b,z)]:
                                         return False
                         except:
                                 pass
         return True
 
 
-
-#solver() is going to recontrol all the positions for each move played
-def solver():
-        while len(unsolved_dicto) != 0:  
-                update_possibilities()
-                place_known_solns()
-                update_possibilities()
-                only_soln_z()
-                update_possibilities()
-                only_soln_x()
-                update_possibilities()
-                only_soln_y()                
+    #solver(self) is going to recontrol all the positions for each move played
+    def solver(self):
+        while len(self.unsolved_dicto) != 0:  
+                self.update_possibilities()
+                self.place_known_solns()
+                self.update_possibilities()
+                self.only_soln_z()
+                self.update_possibilities()
+                self.only_soln_x()
+                self.update_possibilities()
+                self.only_soln_y()                
         return True
+        
 
-
-
-unsolved_dicto = create_unsolved_dicto()
-
-
-
-
-#Test program    - ALL REMOVE
-print("The solver is computing...")
-game_over = solver()
-
-if game_over:
-        print("GAME OVER")
-        #print("Here's the sudoku table you started with:")
-        #display_table(initial_sudoku)
-        print("")
-        print("Here's the final solved sudoku.")
-        display_table(found_solution)
+Solver()
