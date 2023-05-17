@@ -1,3 +1,9 @@
+# -*- coding: utf-8 -*-
+"""
+Created on Sat Mar 18 11:50:10 2023
+
+@author: vduon
+"""
 
 import tkinter as tk
 from tkinter import scrolledtext
@@ -112,6 +118,8 @@ class Fenetre_avec_graphique():
         self.stop_hint_button = tk.Button(self.sudoku_window, text="STOP HINT", font="Calibri 12 bold")
         self.stop_hint_button.grid(row=10, column=5, columnspan=3)
         
+        
+        
         self.time = 0
         self.time_text = tk.Label(self.sudoku_window, text = "TIME : ", font = 'Calibri 12 bold')
         self.time_text.grid(row = 0, column = 2)
@@ -129,13 +137,40 @@ class Fenetre_avec_graphique():
         self.sudoku_window.destroy()
         self.racine.destroy()
         
+    def retrieve_box(self, a, b):
+        """
+        
+
+        Parameters
+        ----------
+        event : TYPE
+            DESCRIPTION.
+
+        Returns
+        -------
+        None.
+
+        """
+        print(a)
+        print(b)
+        
+        
         
         
    
     def creation_grid(self):
         self.cells = {}
+        self.storage_entries = {}
+        self.dico_store ={}
         self.entries = []
         self.box_positions = []
+        
+        def callback(event):
+            widget = event.widget
+            if widget.winfo_id() not in self.entries:
+                self.entries.append(widget.winfo_id())
+                print(self.entries)         
+            
         for row in range(1, 10):
             for column in range(1, 10):
                 if ((row in (1,2,3,7,8,9) and column in (4,5,6)) or (row in (4,5,6) and column in (1,2,3,7,8,9))):
@@ -149,39 +184,8 @@ class Fenetre_avec_graphique():
                 
                 e = tk.Entry(self.cells[row, column], justify='center')
                 e.place(height=40, width=40) #Entry box a little bit smaller than background to see the colors
-                
-            
-            
-    def test_creation_grid(self):
-        self.cells = {}
-        self.entries = []
-        self.box_positions = []
-        for box in range(1, 10):
-            for column in range(1, 4):
-                for row in range(1,4):
-                    """
-                    if ((row in (1,2,3,7,8,9) and column in (4,5,6)) or (row in (4,5,6) and column in (1,2,3,7,8,9))):
-                        color='skyblue1'
-                    else:
-                        color='royalblue1'
-                    
-                    """
-                    cell = tk.Frame(self.sudoku_window, highlightbackground=color, highlightcolor=color, highlightthickness=1, width=50, height=50, padx=3,  pady=3, background='black')
-                    cell.grid(row=row, column=column)
-                    self.cells[(row, column)] = cell
-                    
-                    self.entry_text = tk.StringVar()
-                    self.entry_text.trace('w', self.text_changed())
-                    
-                    e = tk.Entry(self.cells[row, column], justify='center', textvariable = self.entry_text)
-                    e.place(height=40, width=40) #Entry box a little bit smaller than background to see the colors
-                    
-                    self.entries.append(e)
-                    #self.trying_numbers()            
-            
-            
-            
-            
+                e.bind('<Button-1>', callback)
+                 
             
             
             
