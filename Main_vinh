@@ -1,0 +1,263 @@
+# -*- coding: utf-8 -*-
+"""
+Created on Fri May 19 15:30:30 2023
+
+@author: vduon
+"""
+
+
+import tkinter as tk
+import winsound
+
+from Solver import Solver
+from GUI_v2 import GUI
+
+class Main():
+    def __init__(self):
+        self.root = tk.Tk()
+        self.root.geometry("500x400")
+        self.root.title("Sudoku Game")
+        self.root.configure(bg='lightblue')
+        
+        self.button_height = 2
+        self.button_width = 15
+        self.beginning_widgets(self.root)
+        
+    def beginning_widgets(self, root):
+        
+        self.blankspace1 = tk.Label(root, text="")
+        self.blankspace1.configure(bg='lightblue')
+        self.blankspace1.pack()
+        
+        self.label1 = tk.Label(root,text="Welcome to the SUDOKU Game !", font = "Helvetica 16 bold" )
+        self.label1.configure(bg='lightblue')
+        self.label1.pack(side = tk.TOP)
+        
+        self.blankspace2 = tk.Label(root, text="")
+        self.blankspace2.configure(bg='lightblue')
+        self.blankspace2.pack()     
+        
+        self.blankspace3 = tk.Label(root, text="")
+        self.blankspace3.configure(bg='lightblue')
+        self.blankspace3.pack()   
+        
+        self.label2 = tk.Label(root, text="Choose a level : ", font = "Helevetica 13 bold")
+        self.label2.configure(bg='lightblue')
+        self.label2.pack(side = tk.TOP)     
+        
+        self.blankspace4 = tk.Label(root, text="\n")
+        self.blankspace4.configure(bg='lightblue')
+        self.blankspace4.pack()             
+        
+        self.easy_button = tk.Button(root, text = "EASY", height = self.button_height, width = self.button_width, font = "Calibri 11 bold")
+        self.easy_button.pack()
+        self.easy_button.bind('<Button-1>', self.easy_game)
+        
+        self.blankspace5 = tk.Label(root, text="\n")
+        self.blankspace5.configure(bg='lightblue')
+        self.blankspace5.pack()
+        
+        self.medium_button = tk.Button(root, text = "MEDIUM", height = self.button_height, width = self.button_width, font = "Calibri 11 bold")
+        self.medium_button.pack()
+        self.medium_button.bind('<Button-1>', self.medium_game)
+        '''
+        self.blankspace6 = tk.Label(root, text="")
+        self.blankspace6.configure(bg='lightblue')
+        self.blankspace6.pack()
+        
+        self.hard_button = tk.Button(root, text = "HARD", height = self.button_height, width = self.button_width, font = "Calibri 11 bold")
+        self.hard_button.pack()
+        self.hard_button.bind('<Button-1>', self.hard_game)
+        
+        def hard_game(self, event):
+        """
+        
+        """
+        self.sudoku_graph()
+        winsound.Beep(1040, 500)
+        '''
+        
+    def easy_game(self,event):
+        winsound.Beep(640, 500)
+        
+        self.sudoku = {(1,1,1):0 ,
+        (2,1,1):0 ,
+        (3,1,1):0 ,
+        (1,2,1):6 ,
+        (2,2,1):4 ,
+        (3,2,1):9 ,
+        (1,3,1):5 ,
+        (2,3,1):3 ,
+        (3,3,1):1 ,
+        (1,1,2):3 ,
+        (2,1,2):1 ,
+        (3,1,2):0 ,
+        (1,2,2):0 ,
+        (2,2,2):0 ,
+        (3,2,2):0 ,
+        (1,3,2):0 ,
+        (2,3,2):8 ,
+        (3,3,2):0 ,
+        (1,1,3):5 ,
+        (2,1,3):0 ,
+        (3,1,3):9 ,
+        (1,2,3):8 ,
+        (2,2,3):0 ,
+        (3,2,3):1 ,
+        (1,3,3):6 ,
+        (2,3,3):7 ,
+        (3,3,3):0 ,
+        (1,1,4):2 ,
+        (2,1,4):1 ,
+        (3,1,4):0 ,
+        (1,2,4):0 ,
+        (2,2,4):9 ,
+        (3,2,4):6 ,
+        (1,3,4):7 ,
+        (2,3,4):0 ,
+        (3,3,4):0 ,
+        (1,1,5):0 ,
+        (2,1,5):4 ,
+        (3,1,5):0 ,
+        (1,2,5):2 ,
+        (2,2,5):0 ,
+        (3,2,5):8 ,
+        (1,3,5):6 ,
+        (2,3,5):0 ,
+        (3,3,5):1 ,
+        (1,1,6):3 ,
+        (2,1,6):0 ,
+        (3,1,6):6 ,
+        (1,2,6):0 ,
+        (2,2,6):0 ,
+        (3,2,6):0 ,
+        (1,3,6):0 ,
+        (2,3,6):8 ,
+        (3,3,6):0 ,
+        (1,1,7):1 ,
+        (2,1,7):0 ,
+        (3,1,7):5 ,
+        (1,2,7):9 ,
+        (2,2,7):0 ,
+        (3,2,7):0 ,
+        (1,3,7):3 ,
+        (2,3,7):0 ,
+        (3,3,7):0 ,
+        (1,1,8):9 ,
+        (2,1,8):0 ,
+        (3,1,8):0 ,
+        (1,2,8):0 ,
+        (2,2,8):0 ,
+        (3,2,8):3 ,
+        (1,3,8):1 ,
+        (2,3,8):6 ,
+        (3,3,8):0 ,
+        (1,1,9):7 ,
+        (2,1,9):0 ,
+        (3,1,9):0 ,
+        (1,2,9):0 ,
+        (2,2,9):0 ,
+        (3,2,9):0 ,
+        (1,3,9):0 ,
+        (2,3,9):0 ,
+        (3,3,9):8 }
+
+        self.solved_grid = Solver(self.sudoku)
+        print(self.solved_grid)
+        GUI(self.solved_grid)
+        
+    def medium_game(self, event):
+        winsound.Beep(840, 500)
+        
+        self.sudoku = {(1,1,1):0 ,
+        (2,1,1):0 ,
+        (3,1,1):0 ,
+        (1,2,1):0 ,
+        (2,2,1):0 ,
+        (3,2,1):0 ,
+        (1,3,1):5 ,
+        (2,3,1):1 ,
+        (3,3,1):3 ,
+        (1,1,2):0 ,
+        (2,1,2):0 ,
+        (3,1,2):0 ,
+        (1,2,2):3 ,
+        (2,2,2):1 ,
+        (3,2,2):0 ,
+        (1,3,2):0 ,
+        (2,3,2):0 ,
+        (3,3,2):0 ,
+        (1,1,3):0 ,
+        (2,1,3):1 ,
+        (3,1,3):0 ,
+        (1,2,3):0 ,
+        (2,2,3):5 ,
+        (3,2,3):0 ,
+        (1,3,3):2 ,
+        (2,3,3):4 ,
+        (3,3,3):9 ,
+        (1,1,4):0 ,
+        (2,1,4):4 ,
+        (3,1,4):9 ,
+        (1,2,4):0 ,
+        (2,2,4):8 ,
+        (3,2,4):0 ,
+        (1,3,4):6 ,
+        (2,3,4):0 ,
+        (3,3,4):1 ,
+        (1,1,5):0 ,
+        (2,1,5):5 ,
+        (3,1,5):0 ,
+        (1,2,5):0 ,
+        (2,2,5):0 ,
+        (3,2,5):1 ,
+        (1,3,5):0 ,
+        (2,3,5):0 ,
+        (3,3,5):3 ,
+        (1,1,6):0 ,
+        (2,1,6):0 ,
+        (3,1,6):1 ,
+        (1,2,6):0 ,
+        (2,2,6):0 ,
+        (3,2,6):0 ,
+        (1,3,6):4 ,
+        (2,3,6):7 ,
+        (3,3,6):0 ,
+        (1,1,7):0 ,
+        (2,1,7):7 ,
+        (3,1,7):8 ,
+        (1,2,7):4 ,
+        (2,2,7):2 ,
+        (3,2,7):0 ,
+        (1,3,7):0 ,
+        (2,3,7):0 ,
+        (3,3,7):0 ,
+        (1,1,8):0 ,
+        (2,1,8):0 ,
+        (3,1,8):0 ,
+        (1,2,8):0 ,
+        (2,2,8):9 ,
+        (3,2,8):7 ,
+        (1,3,8):0 ,
+        (2,3,8):0 ,
+        (3,3,8):4 ,
+        (1,1,9):0 ,
+        (2,1,9):2 ,
+        (3,1,9):4 ,
+        (1,2,9):0 ,
+        (2,2,9):0 ,
+        (3,2,9):0 ,
+        (1,3,9):7 ,
+        (2,3,9):0 ,
+        (3,3,9):5 }
+
+        self.solved_grid = Solver(self.sudoku)
+        print(self.solved_grid)
+        GUI(self.solved_grid)
+    
+
+
+
+if __name__ == "__main__":
+    app = Main()
+    app.root.mainloop()
