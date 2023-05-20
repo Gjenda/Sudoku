@@ -98,7 +98,7 @@ class MainCode():
         """
 
         self.solver = Solver(self.sudoku)
-        self.solved_sudoku = self.solver.found_solutio.copy()
+        self.solved_sudoku = self.solver.found_solution.copy()
         self.gui = GUI(self.sudoku, self.solved_sudoku)
 
 
