@@ -17,8 +17,8 @@ class Grid():
 
 
     def find_move(self, new_dicto):
-        self.last_state = self.current_state
-        self.current_state = new_dicto
+        self.last_state = self.current_state.copy() 
+        self.current_state = new_dicto.copy() 
         for (key,value) in self.current_state.items():
             if self.current_state[key] != self.last_state[key]:
                 self.played_coords = key
