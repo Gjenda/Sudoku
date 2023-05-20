@@ -1,0 +1,12 @@
+## fix your own directory for the csv file in line 7
+
+import pandas as pd # data processing, CSV file I/O (e.g. pd.read_csv)
+
+nRowsRead = 1000 # specify 'None' if want to read whole file
+# sudoku.csv may have more rows in reality, but we are only loading/previewing the first 1000 rows
+df1 = pd.read_csv(r"C:\INSA\S4\Algo\Project\MainCode\sudoku_1m.csv", delimiter=',', nrows = nRowsRead)
+df1.dataframeName = 'sudoku_1m.csv'
+nRow, nCol = df1.shape
+
+#df1.info()
+print(df1.head(1))
