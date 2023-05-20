@@ -1,6 +1,7 @@
 import tkinter as tk
 import winsound
-
+import pandas as pd
+import random
 
 class MainCode():
     
@@ -15,6 +16,8 @@ class MainCode():
 
         self.sudoku = {}
         self.solved_sudoku = {}
+        self.initial_values = []   #list, containing values imported from csv file
+        
         self.create_widgets(self.root)
 
 
@@ -79,29 +82,45 @@ class MainCode():
         self.initiate_game(3)
         winsound.Beep(1040, 500)
 
+
     def initiate_game(self, k):
         if k == 1:
-            """
-            # import easy sudoku
-            """
+            nRowsRead = None  #an integer, or specify 'None' if want to read whole file
+            df1 = pd.read_csv(r"C:\INSA\S4\Algo\Project\Import_csv\sudoku_1m.csv", delimiter=',', nrows = nRowsRead)   #REMOVE - need to fix directory and file name
+            df1.dataframeName = 'sudoku_1m.csv'
+            nRow, nCol = df1.shape
         elif k == 2:
-            """
-            # import medium sudoku
-            """
+            nRowsRead = None  #an integer, or specify 'None' if want to read whole file
+            df1 = pd.read_csv(r"C:\INSA\S4\Algo\Project\Import_csv\sudoku_1m.csv", delimiter=',', nrows = nRowsRead)   #REMOVE - need to fix directory and file name
+            df1.dataframeName = 'sudoku_1m.csv'
+            nRow, nCol = df1.shape
         else:
             """
             # import hard sudoku
             """
         
-        """
-        #put sudoku from file into self.sudoku
-        """
+        row = random.randint(0, nRow - 1)
+        self.initial_values = df1["quizzes"][row]   #its a list, with all values of the sudoku board, going left to right for each row
+        self.create_dictonary()
 
         self.solver = Solver(self.sudoku)
         self.solved_sudoku = self.solver.found_solution.copy()
         self.gui = GUI(self.sudoku, self.solved_sudoku)
 
 
+    def create_dictonary(self):
+        k = 0
+        for y in range (1,10):    # Y axis => rows
+                for z in range (1,4):    # Z boxes (advancing horizontally)
+                        for x in range (1,4):    # X axis columns
+                                if y <= 3:
+                                        self.sudoku[(x,y,z)] = int(self.initial_values[k])
+                                elif y <= 6:
+                                        self.sudoku[(x,y-3,z+3)] = int(self.initial_values[k])
+                                else:
+                                        self.sudoku[(x,y-6,z+6)] = int(self.initial_values[k])
+                                k += 1
+    
 
 if __name__ == "__main__":
     app = MainCode()
