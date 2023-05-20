@@ -1,0 +1,32 @@
+class Grid():
+   
+    def __init__(self, initial_sudoku, final_sudoku):
+        
+        self.solved_sudoku = final_sudoku
+        self.played_coords = (0,0,0)
+        self.played_value = 0
+
+        self.last_state = initial_sudoku.copy() 
+        self.current_state = initial_sudoku.copy()
+
+
+            
+    def evaluate_move(self, new_dicto):  #returns True if players' move is correct (to be used by GUI for displays)
+        self.find_move(new_dicto)
+        return self.compare_move()
+
+
+    def find_move(self, new_dicto):
+        self.last_state = self.current_state
+        self.current_state = new_dicto
+        for (key,value) in self.current_state.items():
+            if self.current_state[key] != self.last_state[key]:
+                self.played_coords = key
+                self.played_value = value
+
+
+    def compare_move(self):
+        if self.played_value == self.solved_sudoku[self.played_coords]:
+            return True
+        else:
+            return False
