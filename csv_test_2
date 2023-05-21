@@ -1,0 +1,813 @@
+# REMOVE - something is used temporarily and needs to be removed / changed
+# GLOBAL - problem addressed in Solver_CLASS     ### REMOVE - do we need it?
+
+
+import tkinter as tk
+import winsound
+import pandas as pd
+import random
+from tkinter import messagebox
+
+class MainCode():
+    
+    def __init__(self):
+        self.root = tk.Tk()
+        self.root.geometry("500x400")
+        self.root.title("Sudoku Game")
+        self.root.configure(bg='lightblue')
+        
+        self.button_height = 2
+        self.button_width = 15
+
+        self.sudoku = {}
+        self.solved_sudoku = {}
+        self.initial_values = []   #list, containing values imported from csv file
+        
+        self.create_widgets(self.root)
+
+
+
+        
+
+    def create_widgets(self, root):
+        
+        self.blankspace1 = tk.Label(root, text="")
+        self.blankspace1.configure(bg='lightblue')
+        self.blankspace1.pack()
+        
+        self.label1 = tk.Label(root,text="Welcome to the SUDOKU Game !", font = "Helvetica 16 bold" )
+        self.label1.configure(bg='lightblue')
+        self.label1.pack(side = tk.TOP)
+        
+        self.blankspace2 = tk.Label(root, text="")
+        self.blankspace2.configure(bg='lightblue')
+        self.blankspace2.pack()     
+        
+        self.blankspace3 = tk.Label(root, text="")
+        self.blankspace3.configure(bg='lightblue')
+        self.blankspace3.pack()   
+        
+        self.label2 = tk.Label(root, text="Choose a level : ", font = "Helevetica 13 bold")
+        self.label2.configure(bg='lightblue')
+        self.label2.pack(side = tk.TOP)     
+        
+        self.blankspace4 = tk.Label(root, text="")
+        self.blankspace4.configure(bg='lightblue')
+        self.blankspace4.pack()             
+        
+        self.easy_button = tk.Button(root, text = "EASY", height = self.button_height, width = self.button_width, font = "Calibri 11 bold")
+        self.easy_button.pack()
+        self.easy_button.bind('<Button-1>', self.easy_game)
+        
+        self.blankspace5 = tk.Label(root, text="")
+        self.blankspace5.configure(bg='lightblue')
+        self.blankspace5.pack()
+        
+        self.medium_button = tk.Button(root, text = "MEDIUM", height = self.button_height, width = self.button_width, font = "Calibri 11 bold")
+        self.medium_button.pack()
+        self.medium_button.bind('<Button-1>', self.medium_game)
+        
+        self.blankspace6 = tk.Label(root, text="")
+        self.blankspace6.configure(bg='lightblue')
+        self.blankspace6.pack()
+        
+        self.hard_button = tk.Button(root, text = "HARD", height = self.button_height, width = self.button_width, font = "Calibri 11 bold")
+        self.hard_button.pack()
+        self.hard_button.bind('<Button-1>', self.hard_game)
+        
+    
+    def easy_game(self,event):
+        self.initiate_game(1)
+        winsound.Beep(640, 500)
+    
+    def medium_game(self, event):
+        self.initiate_game(2)
+        winsound.Beep(840, 500)
+    
+    def hard_game(self, event):
+        self.initiate_game(3)
+        winsound.Beep(1040, 500)
+
+
+    def initiate_game(self, k):
+        if k == 1:
+            nRowsRead = 100  #an integer, or specify 'None' if want to read whole file
+            df1 = pd.read_csv(r"C:\INSA\S4\Algo\Project\sudoku_1m.csv", delimiter=',', nrows = nRowsRead)   #REMOVE - need to fix directory and file name
+            df1.dataframeName = 'sudoku_1m.csv'
+            nRow, nCol = df1.shape
+        elif k == 2:
+            nRowsRead = 100  #an integer, or specify 'None' if want to read whole file
+            df1 = pd.read_csv(r"C:\INSA\S4\Algo\Project\sudoku_1m.csv", delimiter=',', nrows = nRowsRead)   #REMOVE - need to fix directory and file name
+            df1.dataframeName = 'sudoku_1m.csv'
+            nRow, nCol = df1.shape
+        else:
+            """
+            # import hard sudoku
+            """
+        
+        #row = random.randint(0, nRow - 1)
+        row = 2
+        self.initial_values = df1["quizzes"][row]   #its a list, with all values of the sudoku board, going left to right for each row
+        print(self.initial_values)
+
+        """
+        self.create_dictonary()
+
+        self.solver = Solver(self.sudoku)
+        self.solved_sudoku = self.solver.found_solution.copy()
+        self.gui = GUI(self.sudoku, self.solved_sudoku)
+        """
+        
+
+    def create_dictonary(self):
+        k = 0
+        for y in range (1,10):    # Y axis => rows
+                for z in range (1,4):    # Z boxes (advancing horizontally)
+                        for x in range (1,4):    # X axis columns
+                                if y <= 3:
+                                        self.sudoku[(x,y,z)] = int(self.initial_values[k])
+                                elif y <= 6:
+                                        self.sudoku[(x,y-3,z+3)] = int(self.initial_values[k])
+                                else:
+                                        self.sudoku[(x,y-6,z+6)] = int(self.initial_values[k])
+                                k += 1
+
+        
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+class Solver():
+   
+    def __init__(self, imported_sudoku):
+
+        self.x = 0
+        self.y = 0
+        self.z = 0
+        self.val = 0
+
+        self.initial_sudoku = imported_sudoku.copy()
+        self.found_solution = imported_sudoku.copy()     #the table that is going to be progressively solved
+
+        self.unsolved_dicto = self.create_unsolved_dicto()
+
+        self.solver()    #REMOVE COMMENT - maybe you can give it to another dicto called solution
+
+
+
+
+    def create_unsolved_dicto(self):     #keys are positions of unsolved boxes, value is list of potential valid numbers placable in that box
+        unfinished_dicto = {}
+        for key, value in self.found_solution.items():
+                if value == 0:
+                        unfinished_dicto[key] = [1,2,3,4,5,6,7,8,9]
+        return unfinished_dicto
+
+
+    def control_cases(self):
+        box_for_x = 0     #initiate final result
+        if self.z == 1 or  self.z == 4 or  self.z == 7:     #if box is on the left give 1
+                box_for_x = 1
+        elif self.z == 2 or  self.z == 5 or  self.z == 8:     #middle box
+                box_for_x = 2
+        else:  #if self.z == 3  or  self.z == 6  or  self.z == 9:     #right box
+                box_for_x = 3
+        
+        box_for_y = 0
+        if self.z == 1 or  self.z == 2 or  self.z == 3:     #if box is on the top
+                box_for_y = 1
+        elif self.z == 4 or  self.z == 5 or  self.z == 6:     #middle box
+                box_for_y = 2
+        else:     #bottom box
+                box_for_y = 3
+        return (box_for_x, box_for_y) 
+
+
+    def control_loop_x(self,k,l):
+        for a in range(1,4):
+                for c in range(self.z+k,self.z+l):
+                        if self.found_solution[(a,self.y,c)] == self.found_solution[(self.x,self.y,self.z)] and (a,self.y,c) != (self.x,self.y,self.z):   #not to compare with itself
+                                return False
+        return True
+
+    def control_loop_y(self,k,l):
+        for b in range(1,4):
+                for c in range(self.z+k,self.z+l, 3):     #step = 3
+                        if self.found_solution[(self.x,b,c)] == self.found_solution[(self.x,self.y,self.z)] and (self.x,b,c) != (self.x,self.y,self.z):
+                                return False
+        return True
+
+    def control_loop_z(self):
+        for b in range(1,4):
+                for a in range(1,4):
+                        if self.found_solution[(a,b,self.z)] == self.found_solution[(self.x,self.y,self.z)] and (a,b,self.z) != (self.x,self.y,self.z):
+                                return False
+        return True
+
+
+    # control(self) always takes the values self.x , self.y , self.z , self.val and checks if they are valid to play
+    def control(self):     #returns True if position is safe to play, False if number is unplacable
+        result = True     #initiated True meaning no same values have been found yet
+        (x_verify, y_verify) = self.control_cases()     #check which box you're in, to know which other ones to compare to
+        if x_verify == 1:     #have to check the other two boxes on the right
+                result = self.control_loop_x(0,3)
+        elif x_verify == 2:
+                result = self.control_loop_x(-1,2)
+        else:   #x_verify == 3
+                result = self.control_loop_x(-2, 1)
+        if result == True:
+                if y_verify == 1:
+                        result = self.control_loop_y(0,7)
+                elif y_verify == 2:
+                        result = self.control_loop_y(-3,4)
+                else:
+                        result = self.control_loop_y(-6, 1)
+        if result == True:
+                result = self.control_loop_z()
+        
+        return result
+       
+
+    def place_move(self):   #place the move (even if at least temporarily), to check if its valid
+        self.found_solution[(self.x,self.y,self.z)] = self.val
+
+    def remove_move(self):   #if move not valid, set value back to 0 -> unsolved
+        self.found_solution[(self.x,self.y,self.z)] = 0
+
+
+    def update_possibilities(self):
+        possibilities_to_remove = []   #list of tuples remembering in which position, which possibility to remove
+        for (a,b,c),value in self.unsolved_dicto.items():
+                self.x = a
+                self.y = b
+                self.z = c
+                for i in value:
+                        self.val = i
+                        self.place_move()
+                        res = self.control()
+                        if res == False:
+                                possibilities_to_remove.append(((a,b,c),i))
+                        self.remove_move()
+                        
+        for (a,b,c),value in possibilities_to_remove:
+                self.unsolved_dicto[(a,b,c)].remove(value)    #number can't be placed here, so its removed from the list of possibilities
+
+
+    def place_known_solns(self):
+        positions_to_replace = []
+        for (a,b,c),value in self.unsolved_dicto.items():
+                self.x = a
+                self.y = b
+                self.z = c
+                if len(value) == 1:
+                        positions_to_replace.append((a,b,c))
+                        self.found_solution[(a,b,c)] = value[0]
+        self.finalize_soln(positions_to_replace)
+
+
+    def finalize_soln(self, positions_to_replace):
+        for position in positions_to_replace:
+                del self.unsolved_dicto[position]
+
+
+
+    def only_soln_x(self):
+        positions_to_replace = []
+        for b in range(1,4):
+                self.y = b
+                (result,value) = self.check_only_x()
+                if result == True:
+                        positions_to_replace.append((self.x,self.y,self.z))
+                        self.found_solution[(self.x,self.y,self.z)] = value
+        self.finalize_soln(positions_to_replace)
+
+
+    def check_only_x(self):    #gives True if its the only one in the row
+        result = False
+        for a in range(1,4):
+                self.x = a
+                for c in range(1,10):
+                        self.z = c
+                        (x_verify, y_verify) = self.control_cases()     #check which box you're in, to know which other ones to compare to
+                        try:
+                                for i in self.unsolved_dicto[(a,self.y,c)]:
+                                        if x_verify == 1:     #have to check the other two boxes on the right
+                                                result = self.control_loop_x_v2(0,3,i)
+                                        elif x_verify == 2:
+                                                result = self.control_loop_x_v2(-1,2,i)
+                                        else:
+                                                result = self.control_loop_x_v2(-2,1,i)
+                                        if result == True:
+                                                return (result,i)
+                        except:
+                                pass
+        return (result,0)   #random value, won't be used
+                        
+
+    def control_loop_x_v2(self,k,l,i):
+        for a in range(1,4):
+                for c in range(self.z+k,self.z+l):
+                        try:
+                                if (a,self.y,c) != (self.x,self.y,self.z) and i in self.unsolved_dicto[(a,self.y,c)]:   #not to compare with itself
+                                        return False
+                        except:
+                                pass
+        return True
+
+
+    def only_soln_y(self):
+        positions_to_replace = []
+        for a in range(1,4):
+                self.x = a
+                (result,value) = self.check_only_y()
+                if result == True:
+                        positions_to_replace.append((self.x,self.y,self.z))
+                        self.found_solution[(self.x,self.y,self.z)] = value
+        self.finalize_soln(positions_to_replace)
+
+
+    def check_only_y(self):
+        result = False
+        for b in range(1,4):
+                self.y = b
+                for c in range(1,10):
+                        self.z = c
+                        (x_verify, y_verify) = self.control_cases()
+                        try:
+                                for i in self.unsolved_dicto[(self.x,b,c)]:
+                                        if y_verify == 1:
+                                                result = self.control_loop_y_v2(0,7,i)
+                                        elif y_verify == 2:
+                                                result = self.control_loop_y_v2(-3,4,i)
+                                        else:
+                                                result = self.control_loop_y_v2(-6,1,i)
+                                        if result == True:
+                                                return (result,i)
+                        except:
+                                pass
+        return (result,0)
+
+
+    def control_loop_y_v2(self,k,l,i):
+        for b in range(1,4):
+                for c in range(self.z+k,self.z+l, 3):   #step = 3
+                        try:
+                                if (self.x,b,c) != (self.x,self.y,self.z) and i in self.unsolved_dicto[(self.x,b,c)]:
+                                        return False
+                        except:
+                                pass
+        return True
+
+
+    def only_soln_z(self):
+        positions_to_replace = []
+        for c in range(1,10):
+                self.z = c
+                (result,value) = self.check_only_z()
+                if result == True:
+                        positions_to_replace.append((self.x,self.y,self.z))
+                        self.found_solution[(self.x,self.y,self.z)] = value
+        self.finalize_soln(positions_to_replace)
+
+
+    def check_only_z(self):
+        result = False
+        for a in range(1,4):
+                self.x = a
+                for b in range(1,4):
+                        self.y = b
+                        try:
+                                for i in self.unsolved_dicto[(self.x,b,self.z)]:
+                                        result = self.control_loop_z_v2(i)
+                                        if result == True:
+                                                return (result,i)
+                        except:
+                                pass
+        return (result,0)
+
+
+    def control_loop_z_v2(self,i):
+        for b in range(1,4):
+                for a in range(1,4):
+                        try:
+                                if (a,b,self.z) != (self.x,self.y,self.z) and i in self.unsolved_dicto[(a,b,self.z)]:
+                                        return False
+                        except:
+                                pass
+        return True
+
+
+    #solver(self) maintains the loop of controlling/updating possibilities, and placing absolutely certain values, until the grid is filled
+    def solver(self):
+        while len(self.unsolved_dicto) != 0:  
+                self.update_possibilities()
+                self.place_known_solns()
+                self.update_possibilities()
+                self.only_soln_z()
+                self.update_possibilities()
+                self.only_soln_x()
+                self.update_possibilities()
+                self.only_soln_y()                
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+class Grid():
+   
+    def __init__(self, initial_sudoku, final_sudoku):
+        
+        self.solved_sudoku = final_sudoku
+        self.played_coords = (0,0,0)
+        self.played_value = 0
+
+        self.last_state = initial_sudoku.copy() 
+        self.current_state = initial_sudoku.copy()
+
+
+
+            
+    def evaluate_move(self, new_dicto):  #returns True if players' move is correct (to be used by GUI for displays)
+        self.find_move(new_dicto)
+        return self.compare_move()
+
+
+    def find_move(self, new_dicto):
+        self.last_state = self.current_state
+        self.current_state = new_dicto
+        for (key,value) in self.current_state.items():
+            if self.current_state[key] != self.last_state[key]:
+                self.played_coords = key
+                self.played_value = value
+
+
+    def compare_move(self):
+        if self.played_value == self.solved_sudoku[self.played_coords] or self.played_value == 0:   # for 0, we return True to turn box color to white
+            return True
+        else:   
+            return False
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+class GUI():
+    def __init__(self, initial_grid, solved_grid):    
+        self.solved_sudoku = solved_grid # We define self.solved_sudoku as the dictionnary that is given in entry in the Main class
+        self.actual_grid = initial_grid
+        
+        self.grid = Grid(initial_grid, solved_grid)
+        
+        self.racine = tk.Tk()       
+        self.racine.configure(bg='gray85')
+        self.creation_grid()        # Creation of the grid (entry boxes)
+        self.creation_widgets_game()    # Creation of the other functionnalities of our game (solution, hint, timer, exit)
+        self.debut_grid()       # Display the first answers to guide the player
+        self.start_timer()
+        
+    def creation_widgets_game(self):   # Creation of the other functionalities of the game
+        """doc
+        """
+        self.exit_button = tk.Button(self.racine, text="EXIT", font="Calibri 12 bold")
+        self.exit_button.grid(row=10, column = 9)
+        self.exit_button.bind('<Button-1>', self.close_windows)
+        
+        self.solution_button = tk.Button(self.racine, text="SOLUTION", font="Calibri 12 bold")
+        self.solution_button.grid(row=10, column = 1, columnspan = 2)
+        self.solution_button.bind('<Button-1>', self.show_solution)
+        
+        self.start_hint_button = tk.Button(self.racine, text="START HINT", font="Calibri 12 bold")
+        self.start_hint_button.grid(row=10, column=3, columnspan=3)
+        self.start_hint_button.bind('<Button-1>', self.show_hint)        
+        
+        self.stop_hint_button = tk.Button(self.racine, text="STOP HINT", font="Calibri 12 bold")
+        self.stop_hint_button.grid(row=10, column=5, columnspan=3) 
+        self.stop_hint_button.bind('<Button-1>', self.stop_hint)
+        
+        self.time = 0
+        self.time_text = tk.Label(self.racine, text = "TIME : ", font = 'Calibri 12 bold')
+        self.time_text.grid(row = 0, column = 2)
+        self.timer_label = tk.Label(self.racine, text="",font = 'Calibri 12 bold', fg = 'red')
+        self.timer_label.grid(row=0, column = 3)
+        #self.start_timer()
+        
+    def creation_grid(self):        # Creation of the entry boxes in a loop + the callback functions linked to them
+        self.cells = {}
+        self.storage_entries = {}
+        # We created a list to store the positions of every boxes in a the format (COLUMN, ROW, #SQUARE)
+        self.box_positions_list = [(1,1,1),
+        (2,1,1),
+        (3,1,1),
+        (1,1,2),
+        (2,1,2),
+        (3,1,2),
+        (1,1,3),
+        (2,1,3),
+        (3,1,3),
+        (1,2,1),
+        (2,2,1),
+        (3,2,1),
+        (1,2,2),
+        (2,2,2),
+        (3,2,2),
+        (1,2,3),
+        (2,2,3),
+        (3,2,3),
+        (1,3,1),
+        (2,3,1),
+        (3,3,1),
+        (1,3,2),
+        (2,3,2),
+        (3,3,2),
+        (1,3,3),
+        (2,3,3),
+        (3,3,3),
+        (1,1,4),
+        (2,1,4),
+        (3,1,4),
+        (1,1,5),
+        (2,1,5),
+        (3,1,5),
+        (1,1,6),
+        (2,1,6),
+        (3,1,6),
+        (1,2,4),
+        (2,2,4),
+        (3,2,4),
+        (1,2,5),
+        (2,2,5),
+        (3,2,5),
+        (1,2,6),
+        (2,2,6),
+        (3,2,6),
+        (1,3,4),
+        (2,3,4),
+        (3,3,4),
+        (1,3,5),
+        (2,3,5),
+        (3,3,5),
+        (1,3,6),
+        (2,3,6),
+        (3,3,6),
+        (1,1,7),
+        (2,1,7),
+        (3,1,7),
+        (1,1,8),
+        (2,1,8),
+        (3,1,8),
+        (1,1,9),
+        (2,1,9),
+        (3,1,9),
+        (1,2,7),
+        (2,2,7),
+        (3,2,7),
+        (1,2,8),
+        (2,2,8),
+        (3,2,8),
+        (1,2,9),
+        (2,2,9),
+        (3,2,9),
+        (1,3,7),
+        (2,3,7),
+        (3,3,7),
+        (1,3,8),
+        (2,3,8),
+        (3,3,8),
+        (1,3,9),
+        (2,3,9),
+        (3,3,9)]
+        
+        self.dictionary_positions_id = {}       #Dictionary that stores : KEY => box_position, VALUE => box_id
+        self.dictionary_id_values = {}          #Dictionary that stores : KEY => box_id, VALUE => box_value
+        self.dictionary_positions_value = {}
+        self.entries_ids = []       # List to store all the id number of the entry boxes that are created          
+        self.entries_widget_list = [] 
+        self.dictionary_widget_id = {}
+        
+        for row in range(1, 10):
+            for column in range(1, 10):
+                if ((row in (1,2,3,7,8,9) and column in (4,5,6)) or (row in (4,5,6) and column in (1,2,3,7,8,9))):
+                    color='skyblue1'
+                else:
+                    color='royalblue1'
+                # To get a better visual, we change the color of the background for different #square number
+                cell = tk.Frame(self.racine, highlightbackground=color, highlightcolor=color, highlightthickness=1, width=50, height=50, padx=3,  pady=3, background='black')
+                cell.grid(row=row, column=column)
+                self.cells[(row, column)] = cell
+                
+                # We create the entry boxes
+                e = tk.Entry(self.cells[row, column], justify='center')
+                e.place(height=40, width=40) #Entry box a little bit smaller than background to see the colors
+                e.bind('<Return>', self.update_player_grid)
+                #e.bind('<Button-1>', show_id)      Command just to check that the program returns us the id of the box we just cliked on
+                self.entries_ids.append(e.winfo_id())  # Add the id of the box into a list storing all the id of the 81 boxes   
+                self.entries_widget_list.append(e)
+        
+        self.dictionary_id_values = {key: 0 for key in self.entries_ids}
+        self.storage_positions_and_id(self.box_positions_list, self.entries_ids) # Merge the list of the box positions and the list of the ids into one single dictionary
+        self.dictionary_positions_widget = {k: v for k, v in zip(self.box_positions_list, self.entries_widget_list)}
+            
+    #SECONDARY FUNCTIONS
+        
+        
+    def start_timer(self):
+        """doc
+        """
+        self.time += 1
+        self.timer_label.config(text=str(self.time))
+        self.timer_id = self.racine.after(1000, self.start_timer)
+        
+    def stop_timer(self):
+        self.racine.after_cancel(self.timer_id)
+        
+        
+    def close_windows(self, event):     # Close all the actual Sudoku window if the button EXIT is pressed
+        self.racine.destroy()
+        
+    def update_actual_sudoku_d3(self):
+        for box_position, box_id in self.dictionary_positions_id.items():
+            self.dictionary_positions_value[box_position] = self.dictionary_id_values[box_id]
+        
+    def update_player_grid(self,event):     # Take into account the try that player did and check with the solved_grid if it is correct or not
+        
+        widget = event.widget
+        
+        for box_id, box_value in self.dictionary_id_values.items():
+            if widget.winfo_id() == box_id:
+                if len(widget.get()) == 0:
+                    self.dictionary_id_values[box_id] = 0
+                else:
+                    self.dictionary_id_values[box_id] = int(widget.get())
+        print(self.dictionary_id_values)
+        self.update_actual_sudoku_d3()
+        
+        self.result_player_try = self.grid.evaluate_move(self.dictionary_positions_value)
+        
+
+        if self.result_player_try:
+            widget.config(bg='white')
+        else:
+            widget.config(bg='red')
+        
+        
+            
+    def show_id(self,event):        # OPTIONAL : Display the id of the box that has just been clicked on
+        widget = event.widget
+        for box_position, box_id in self.dictionary_positions_id.items():
+            if widget.winfo_id() == box_id:
+                print((box_position, box_id))
+
+    def storage_positions_and_id(self,box_position_list,box_id_list): # Merge the list of the box positions and the list of the ids into one single dictionary
+            self.dictionary_positions_id = {k: v for k, v in zip(box_position_list, box_id_list)}  
+    
+    def debut_grid(self):   # Display the value of certain box positions at the beginning of the game to guide the player
+    
+        
+        
+        
+        for position1, value in self.actual_grid.items():
+            for position2, widget in self.dictionary_positions_widget.items():
+                if position1 == position2:
+                    if value != 0:
+                        widget.insert(0, str(value))
+                        
+        self.update_actual_sudoku_d3()
+    
+    def show_solution(self, event):
+        """
+        """
+        self.stop_timer()
+        for position1, value in self.solved_sudoku.items():
+            for position2, widget in self.dictionary_positions_widget.items():
+                if position1 == position2:
+                    widget.delete(0, tk.END)
+                    widget.insert(0, str(value))
+        messagebox.showinfo("Message Box", "You finished the game !")
+        
+        
+    def show_hint(self, event): # This is our TIMER
+        """
+        """
+        
+        #selected_items = random.sample(self.solved_sudoku.items(), 38)
+        
+    def stop_hint(self, event):
+        """
+        """
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+if __name__ == "__main__":
+    app = MainCode()
+    app.root.mainloop()
