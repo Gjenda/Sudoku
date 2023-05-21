@@ -29,6 +29,7 @@ class GUI():
         self.actual_grid = initial_grid
         
         self.grid = Grid(initial_grid, solved_grid)
+        self.hint_state = True
         
         self.racine = tk.Tk()       
         self.racine.configure(bg='gray85')
@@ -171,9 +172,9 @@ class GUI():
                 e = tk.Entry(self.cells[row, column], justify='center')
                 e.place(height=40, width=40) #Entry box a little bit smaller than background to see the colors
                 e.bind('<Return>', self.update_player_grid)
-                #e.bind('<Button-1>', show_id)      Command just to check that the program returns us the id of the box we just cliked on
                 self.entries_ids.append(e.winfo_id())  # Add the id of the box into a list storing all the id of the 81 boxes   
                 self.entries_widget_list.append(e)
+                self.dictionary_widget_id[e] = e.winfo_id()
         
         self.dictionary_id_values = {key: 0 for key in self.entries_ids}
         self.storage_positions_and_id(self.box_positions_list, self.entries_ids) # Merge the list of the box positions and the list of the ids into one single dictionary
@@ -190,6 +191,14 @@ class GUI():
         self.timer_id = self.racine.after(1000, self.start_timer)
         
     def stop_timer(self):
+        """
+        
+        PArameters
+        Returns
+        -------
+        None.
+
+        """
         self.racine.after_cancel(self.timer_id)
         
         
@@ -217,7 +226,9 @@ class GUI():
         
 
         if self.result_player_try:
-            widget.config(bg='white')
+            widget.config(bg='green')
+            widget.after(1000, lambda: widget.config(bg='white'))
+            
         else:
             widget.config(bg='red')
         
@@ -238,50 +249,91 @@ class GUI():
         
         
         for position1, value in self.actual_grid.items():
-            for position2, widget in self.dictionary_positions_widget.items():
-                if position1 == position2:
-                    if value != 0:
+            if value != 0:
+                for position2, widget in self.dictionary_positions_widget.items():
+                    if position1 == position2:
                         widget.insert(0, str(value))
-                    for box_id, box_widget in self.dictionary_widget_id.items():
-                        if box_widget == widget:
-                            self.dictionary_id_values[box_id] = value
+                        for box_widget, box_id in self.dictionary_widget_id.items():
+                            if box_widget == widget:
+                                self.dictionary_id_values[box_id] = value
         self.update_actual_sudoku_d3()
     
     def show_solution(self, event):
         """
         """
         self.stop_timer()
+        
         for position1, value in self.solved_sudoku.items():
             for position2, widget in self.dictionary_positions_widget.items():
                 print(position2, widget)
                 if position1 == position2:
                     widget.delete(0, tk.END)
                     widget.insert(0, str(value))
+                    widget.configure(fg="red")
+        for i in self.entries_widget_list:
+            i.config(state='disabled')
         messagebox.showinfo("Message Box", "You finished the game !")
         
         
+        
+    
+        
+    def show_hint_v2(self, event): # This is our TIMER
+        """
+        """
+        self.changing_item = []
+        coordinate= random.sample(self.solved_sudoku.keys(), 1)
+        print(coordinate)
+        self.changing_item.append(coordinate)
+        print(self.solved_sudoku[coordinate])
+        self.changing_item.append(self.solved_sudoku[coordinate])
+        for box_position, widget in self.dictionary_positions_widget.items():
+            print(box_position, widget)
+            if box_position == self.changing_item[0]:
+                widget.delete(0, tk.END)
+                widget.insert(0, str(self.changing_item[1]))
+                #time.sleep(1)
+                
+                
+                
     def show_hint(self, event): # This is our TIMER
         """
         """
+               
+        self.show_hint_v4()   
+    def stop_hint(self, event):
+        """
+        """
+        self.racine.after_cancel(self.hint_state)  
+    
+    def show_hint_v4(self):
         self.changing_item = []
         selected_item= random.sample(self.solved_sudoku.items(), 1)
         print(selected_item)
         self.changing_item_dico = dict(selected_item)
-        print(self.changing_item_dico)
         for position, value in self.changing_item_dico.items():
             self.changing_item.append(position)
             self.changing_item.append(value)
         for box_position, widget in self.dictionary_positions_widget.items():
-            print(box_position, widget)
             if box_position == self.changing_item[0]:
+                widget.delete(0, tk.END)
+                widget.config(bg='yellow')
                 widget.insert(0, str(self.changing_item[1]))
+        widget.after(1000, lambda: widget.config(bg='white'))      
+        self.hint_state = self.racine.after(3000, self.show_hint_v4)
         
-        
-    def stop_hint(self, event):
-        """
-        """
-        
-        
+    def show_hint_v3(self):
+
+        hint_item = random.sample(self.solved_sudoku.items(), 1)
+
+        for position1, value in self.actual_grid.items():
+            if value != hint_item[0][1]:
+                widget = self.dictionary_positions_widget[position1]
+                widget.delete(0, tk.END)
+                widget.config(bg='yellow')
+                widget.insert(0, hint_item[0][1])
+        widget.after(1000, lambda: widget.config(bg='white'))      
+        self.hint_state = self.racine.after(3000, self.show_hint_v3)
     
      
     
