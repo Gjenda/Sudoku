@@ -1,61 +1,53 @@
-# -*- coding: utf-8 -*-
-"""
-Created on Fri May 19 17:58:14 2023
-
-@author: vduon
-"""
-
-# -*- coding: utf-8 -*-
-"""
-Created on Sat Mar 18 11:50:10 2023
-
-@author: vduon
-"""
-
 import tkinter as tk
 from tkinter import scrolledtext
 import csv
 import random
 import winsound
 import pygame.mixer
+import time
+from tkinter import messagebox
+
+from Grid import Grid
 
 class GUI():
-    
-    #MAIN FUNCTIONS
-    
-    def __init__(self, solved_grid):    # The class GUI will takes as entry: 1) the solved_grid and some answers to guide the player, 2) the  
-            
+    def __init__(self, initial_grid, solved_grid):    
         self.solved_sudoku = solved_grid # We define self.solved_sudoku as the dictionnary that is given in entry in the Main class
+        self.actual_grid = initial_grid
+        
+        self.grid = Grid(initial_grid, solved_grid)
         
         self.racine = tk.Tk()       
         self.racine.configure(bg='gray85')
         self.creation_grid()        # Creation of the grid (entry boxes)
         self.creation_widgets_game()    # Creation of the other functionnalities of our game (solution, hint, timer, exit)
         self.debut_grid()       # Display the first answers to guide the player
-       
+        self.start_timer()
         
     def creation_widgets_game(self):   # Creation of the other functionalities of the game
         """doc
         """
-        self.exit_button = tk.Button(self.sudoku_window, text="EXIT", font="Calibri 12 bold")
+        self.exit_button = tk.Button(self.racine, text="EXIT", font="Calibri 12 bold")
         self.exit_button.grid(row=10, column = 9)
         self.exit_button.bind('<Button-1>', self.close_windows)
         
-        self.solution_button = tk.Button(self.sudoku_window, text="SOLUTION", font="Calibri 12 bold")
+        self.solution_button = tk.Button(self.racine, text="SOLUTION", font="Calibri 12 bold")
         self.solution_button.grid(row=10, column = 1, columnspan = 2)
+        self.solution_button.bind('<Button-1>', self.show_solution)
         
-        self.start_hint_button = tk.Button(self.sudoku_window, text="START HINT", font="Calibri 12 bold")
-        self.start_hint_button.grid(row=10, column=3, columnspan=3)        
+        self.start_hint_button = tk.Button(self.racine, text="START HINT", font="Calibri 12 bold")
+        self.start_hint_button.grid(row=10, column=3, columnspan=3)
+        self.start_hint_button.bind('<Button-1>', self.show_hint)        
         
-        self.stop_hint_button = tk.Button(self.sudoku_window, text="STOP HINT", font="Calibri 12 bold")
+        self.stop_hint_button = tk.Button(self.racine, text="STOP HINT", font="Calibri 12 bold")
         self.stop_hint_button.grid(row=10, column=5, columnspan=3) 
+        self.stop_hint_button.bind('<Button-1>', self.stop_hint)
         
         self.time = 0
-        self.time_text = tk.Label(self.sudoku_window, text = "TIME : ", font = 'Calibri 12 bold')
+        self.time_text = tk.Label(self.racine, text = "TIME : ", font = 'Calibri 12 bold')
         self.time_text.grid(row = 0, column = 2)
-        self.timer_label = tk.Label(self.sudoku_window, text="",font = 'Calibri 12 bold', fg = 'red')
+        self.timer_label = tk.Label(self.racine, text="",font = 'Calibri 12 bold', fg = 'red')
         self.timer_label.grid(row=0, column = 3)
-        self.start_timer()
+        #self.start_timer()
         
     def creation_grid(self):        # Creation of the entry boxes in a loop + the callback functions linked to them
         self.cells = {}
@@ -145,8 +137,11 @@ class GUI():
         
         self.dictionary_positions_id = {}       #Dictionary that stores : KEY => box_position, VALUE => box_id
         self.dictionary_id_values = {}          #Dictionary that stores : KEY => box_id, VALUE => box_value
+        self.dictionary_positions_value = {}
         self.entries_ids = []       # List to store all the id number of the entry boxes that are created          
-            
+        self.entries_widget_list = [] 
+        self.dictionary_widget_id = {}
+        
         for row in range(1, 10):
             for column in range(1, 10):
                 if ((row in (1,2,3,7,8,9) and column in (4,5,6)) or (row in (4,5,6) and column in (1,2,3,7,8,9))):
@@ -154,7 +149,7 @@ class GUI():
                 else:
                     color='royalblue1'
                 # To get a better visual, we change the color of the background for different #square number
-                cell = tk.Frame(self.sudoku_window, highlightbackground=color, highlightcolor=color, highlightthickness=1, width=50, height=50, padx=3,  pady=3, background='black')
+                cell = tk.Frame(self.racine, highlightbackground=color, highlightcolor=color, highlightthickness=1, width=50, height=50, padx=3,  pady=3, background='black')
                 cell.grid(row=row, column=column)
                 self.cells[(row, column)] = cell
                 
@@ -164,10 +159,12 @@ class GUI():
                 e.bind('<Return>', self.update_player_grid)
                 #e.bind('<Button-1>', show_id)      Command just to check that the program returns us the id of the box we just cliked on
                 self.entries_ids.append(e.winfo_id())  # Add the id of the box into a list storing all the id of the 81 boxes   
-                
+                self.entries_widget_list.append(e)
+        
         self.dictionary_id_values = {key: 0 for key in self.entries_ids}
         self.storage_positions_and_id(self.box_positions_list, self.entries_ids) # Merge the list of the box positions and the list of the ids into one single dictionary
-    
+        self.dictionary_positions_widget = {k: v for k, v in zip(self.box_positions_list, self.entries_widget_list)}
+            
     #SECONDARY FUNCTIONS
         
         
@@ -176,52 +173,41 @@ class GUI():
         """
         self.time += 1
         self.timer_label.config(text=str(self.time))
-        self.sudoku_window.after(1000, self.start_timer)
+        self.timer_id = self.racine.after(1000, self.start_timer)
+        
+    def stop_timer(self):
+        self.racine.after_cancel(self.timer_id)
+        
         
     def close_windows(self, event):     # Close all the actual Sudoku window if the button EXIT is pressed
-        self.sudoku_window.destroy()
         self.racine.destroy()
         
+    def update_actual_sudoku_d3(self):
+        for box_position, box_id in self.dictionary_positions_id.items():
+            self.dictionary_positions_value[box_position] = self.dictionary_id_values[box_id]
+        
     def update_player_grid(self,event):     # Take into account the try that player did and check with the solved_grid if it is correct or not
-        resultat = False
+        
         widget = event.widget
         
         for box_id, box_value in self.dictionary_id_values.items():
             if widget.winfo_id() == box_id:
-                self.dictionary_id_values[box_id] = int(widget.get())
-                
-        self.changing_id_value = (widget.winfo_id(), int(widget.get()))
-        
-        for box_position , box_id in self.dictionary_positions_id.items():
-            if widget.winfo_id() == box_id:
-                self.changing_positions_id = (box_position, box_id)
-        self.changing_positions_value = (self.changing_positions_id[0], self.changing_id_value[1])
-        
-        #print(self.changing_positions_id)
-        #print(self.changing_id_value)
-        print(self.changing_positions_value)
-        print("")
-        #for key, value in self.solved_grid.items():
-            #print((key, value))
-        
-        i = 0                
-        while not resultat or i <= len(self.solved_grid.values()):
-            for key, value in self.solved_grid.items():
-                if (key, int(value)) == self.changing_positions_value:
-                    resultat = True
+                if len(widget.get()) == 0:
+                    self.dictionary_id_values[box_id] = 0
                 else:
-                    i += 1
-        '''
-        for key, value in self.solved_grid.items():
-                if (key, int(value)) == (self.changing_positions_value[0], self.changing_positions_value[1]):
-                    print('correct')
-                else:
-                    print('faux')
-        '''            
-        if not resultat:
-            widget.config(bg='red')
+                    self.dictionary_id_values[box_id] = int(widget.get())
+        print(self.dictionary_id_values)
+        self.update_actual_sudoku_d3()
+        
+        self.result_player_try = self.grid.evaluate_move(self.dictionary_positions_value)
+        
+
+        if self.result_player_try:
+            widget.config(bg='white')
         else:
-            widget.config(bg='green')
+            widget.config(bg='red')
+        
+        
             
     def show_id(self,event):        # OPTIONAL : Display the id of the box that has just been clicked on
         widget = event.widget
@@ -234,15 +220,36 @@ class GUI():
     
     def debut_grid(self):   # Display the value of certain box positions at the beginning of the game to guide the player
     
+        
+        
+        
+        for position1, value in self.actual_grid.items():
+            for position2, widget in self.dictionary_positions_widget.items():
+                if position1 == position2:
+                    if value != 0:
+                        widget.insert(0, str(value))
+                        
+        self.update_actual_sudoku_d3()
     
-        #num_items = random.randint(1, len(self.solved_grid))
-        list_revealing_id = []
-        selected_items = random.sample(self.solved_grid.items(), 38)
-        self.selected_dict = dict(selected_items)
-        print(self.selected_dict)
-        for box_position, box_id in self.dictionary_positions_id.items():
-            for position_to_reveal in self.selected_dict.keys():
-                if box_position == position_to_reveal:
-                    list_revealing_id.append(box_id)
-        print(list_revealing_id)
- 
+    def show_solution(self, event):
+        """
+        """
+        self.stop_timer()
+        for position1, value in self.solved_sudoku.items():
+            for position2, widget in self.dictionary_positions_widget.items():
+                if position1 == position2:
+                    widget.delete(0, tk.END)
+                    widget.insert(0, str(value))
+        messagebox.showinfo("Message Box", "You finished the game !")
+        
+        
+    def show_hint(self, event): # This is our TIMER
+        """
+        """
+        
+        #selected_items = random.sample(self.solved_sudoku.items(), 38)
+        
+    def stop_hint(self, event):
+        """
+        """
+        
