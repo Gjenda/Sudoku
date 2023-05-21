@@ -1,6 +1,3 @@
-#ai that solves the sudoku
-# REMOVE - something is used temporarily and needs to be removed / changed
-
 class Solver():
    
     def __init__(self, imported_sudoku):
@@ -11,16 +8,29 @@ class Solver():
         self.val = 0
 
         self.initial_sudoku = imported_sudoku.copy()
-        self.found_solution = imported_sudoku.copy()     #the table that is going to be progressively solved
+        self.found_solution = imported_sudoku.copy()  #the table that is going to be progressively solved, and will then hold final solution
 
         self.unsolved_dicto = self.create_unsolved_dicto()
 
-        self.solver()    #REMOVE COMMENT - maybe you can give it to another dicto called solution
+        self.solver()
 
 
 
+    def create_unsolved_dicto(self):
+        """
+        Creates a dictionary, which will keep track of coordinates of unsolved boxes in keys.
+        In value, is the list of all possibilities that can be placed in a box.
+        This grid is initiated with all values as possibilities in the empty boxes.
 
-    def create_unsolved_dicto(self):     #keys are positions of unsolved boxes, value is list of potential valid numbers placable in that box
+        Parameters
+        ----------
+        None
+
+        Returns
+        -------
+        Dictionary
+
+        """
         unfinished_dicto = {}
         for key, value in self.found_solution.items():
                 if value == 0:
@@ -29,6 +39,19 @@ class Solver():
 
 
     def control_cases(self):
+        """
+        Checks and returns specifications of where (x,y,z) are on the grid.
+        This is so that comparisons can be done without going out of bounds.
+
+        Parameters
+        ----------
+        None
+
+        Returns
+        -------
+        Tuple containing 2 integers
+
+        """
         box_for_x = 0     #initiate final result
         if self.z == 1 or  self.z == 4 or  self.z == 7:     #if box is on the left give 1
                 box_for_x = 1
@@ -48,6 +71,22 @@ class Solver():
 
 
     def control_loop_x(self,k,l):
+        """
+        Checks if same value as tested one (self.value), exists on the same x axis (same column).
+        The moment an existing value on that column is found (returns False), function ends.
+
+        Parameters
+        ----------
+        k : integer
+            Provides vertical position of the z box (top, middle or bottom)
+        l : integer
+            Provides horizontal position of the z box (left, middle or right)
+
+        Returns
+        -------
+        Boolean
+
+        """
         for a in range(1,4):
                 for c in range(self.z+k,self.z+l):
                         if self.found_solution[(a,self.y,c)] == self.found_solution[(self.x,self.y,self.z)] and (a,self.y,c) != (self.x,self.y,self.z):   #not to compare with itself
@@ -55,6 +94,22 @@ class Solver():
         return True
 
     def control_loop_y(self,k,l):
+        """
+        Checks if same value as tested one (self.value), exists on the same y axis (same row).
+        The moment an existing value on that row is found (returns False), function ends.
+
+        Parameters
+        ----------
+        k : integer
+            Provides vertical position of the z box (top, middle or bottom)
+        l : integer
+            Provides horizontal position of the z box (left, middle or right)
+
+        Returns
+        -------
+        Boolean
+
+        """
         for b in range(1,4):
                 for c in range(self.z+k,self.z+l, 3):     #step = 3
                         if self.found_solution[(self.x,b,c)] == self.found_solution[(self.x,self.y,self.z)] and (self.x,b,c) != (self.x,self.y,self.z):
@@ -62,6 +117,19 @@ class Solver():
         return True
 
     def control_loop_z(self):
+        """
+        Checks if same value as tested one (self.value), exists on the same z box.
+        The moment an existing value on that box is found (returns False), function ends.
+
+        Parameters
+        ----------
+        None
+
+        Returns
+        -------
+        Boolean
+
+        """
         for b in range(1,4):
                 for a in range(1,4):
                         if self.found_solution[(a,b,self.z)] == self.found_solution[(self.x,self.y,self.z)] and (a,b,self.z) != (self.x,self.y,self.z):
@@ -69,8 +137,20 @@ class Solver():
         return True
 
 
-    # control(self) always takes the values self.x , self.y , self.z , self.val and checks if they are valid to play
-    def control(self):     #returns True if position is safe to play, False if number is unplacable
+    def control(self):
+        """
+        Always takes the values self.x , self.y , self.z , self.val and checks if they are valid to play
+        Returns True if position is safe to play (even if temorarily), False if number is unplacable
+
+        Parameters
+        ----------
+        None
+
+        Returns
+        -------
+        Boolean
+
+        """
         result = True     #initiated True meaning no same values have been found yet
         (x_verify, y_verify) = self.control_cases()     #check which box you're in, to know which other ones to compare to
         if x_verify == 1:     #have to check the other two boxes on the right
@@ -92,14 +172,55 @@ class Solver():
         return result
        
 
-    def place_move(self):   #place the move (even if at least temporarily), to check if its valid
+    def place_move(self):
+        """
+        Places the move of coordinates self.x,self.y,self.z and value self.val (updated self.found_solution)
+        Moves can be placed even if needed temporarily, to later check if they are valid.
+
+        Parameters
+        ----------
+        None
+
+        Returns
+        -------
+        None
+
+        """
         self.found_solution[(self.x,self.y,self.z)] = self.val
 
-    def remove_move(self):   #if move not valid, set value back to 0 -> unsolved
+    def remove_move(self):
+        """
+        If move not valid, emoves the move of coordinates self.x,self.y,self.z and value self.val (updated self.found_solution)
+        Does this by setting value back to 0 -> unsolved
+
+        Parameters
+        ----------
+        None
+
+        Returns
+        -------
+        None
+
+        """
         self.found_solution[(self.x,self.y,self.z)] = 0
 
 
     def update_possibilities(self):
+        """
+        For each remaining coordinate in unsolved_dicto, iterates through all the possibilities in this position.
+        Initially places a possibility, controls if it is in disagreement with the grid, then removes it (even if its the right value).
+        If it does disagree, hence is not a possibility, saves value in the list possibilities_to_remove.
+        Iterates through all positions and possibilities in possibilities_to_remove to update the possibilities dictionary (unsolved_dicto).
+
+        Parameters
+        ----------
+        None
+
+        Returns
+        -------
+        None
+
+        """
         possibilities_to_remove = []   #list of tuples remembering in which position, which possibility to remove
         for (a,b,c),value in self.unsolved_dicto.items():
                 self.x = a
@@ -114,10 +235,24 @@ class Solver():
                         self.remove_move()
                         
         for (a,b,c),value in possibilities_to_remove:
-                self.unsolved_dicto[(a,b,c)].remove(value)    #number can't be placed here, so its removed from the list of possibilities
+                self.unsolved_dicto[(a,b,c)].remove(value)   #number can't be placed here, so its removed from the list of possibilities
 
 
     def place_known_solns(self):
+        """
+        It is certain a value is placable, meaning its the only one possible in its box.
+        Updates self.found_solution.
+        Calls self.finalize_soln to remove this box as a empty box from self.unsolved_dicto
+
+        Parameters
+        ----------
+        None
+
+        Returns
+        -------
+        None
+
+        """
         positions_to_replace = []
         for (a,b,c),value in self.unsolved_dicto.items():
                 self.x = a
@@ -130,12 +265,39 @@ class Solver():
 
 
     def finalize_soln(self, positions_to_replace):
+        """
+        Updates self.unsolved_dicto. The positions given in this list, are no longer empty boxes.
+
+        Parameters
+        ----------
+        positions_to_replace : list
+                List containing coordinates of boxes that have been solved.
+
+        Returns
+        -------
+        None
+
+        """
         for position in positions_to_replace:
                 del self.unsolved_dicto[position]
 
 
 
     def only_soln_x(self):
+        """
+        Calls check_only_x to check if possibility in coordinates (x,y,z) is the only one on that x axis (same column)
+        If it is the only possibility, updates self.found_solution.
+        Calls self.finalize_soln to remove this box as a empty box from self.unsolved_dicto
+
+        Parameters
+        ----------
+        None
+
+        Returns
+        -------
+        None
+
+        """
         positions_to_replace = []
         for b in range(1,4):
                 self.y = b
@@ -146,7 +308,21 @@ class Solver():
         self.finalize_soln(positions_to_replace)
 
 
-    def check_only_x(self):    #gives True if its the only one in the row
+    def check_only_x(self):
+        """
+        Checks if possibility in coordinates (x,y,z) is the only one on that x axis (same column).
+        The moment that possibility exists somewhere else on that column (returns False), function ends.
+        Returns boolean to show whether its the only possiblity (True if it is), and value of which value is the only existing one.
+
+        Parameters
+        ----------
+        None
+
+        Returns
+        -------
+        Tuple containing boolean and integer
+
+        """
         result = False
         for a in range(1,4):
                 self.x = a
@@ -169,6 +345,24 @@ class Solver():
                         
 
     def control_loop_x_v2(self,k,l,i):
+        """
+        Checks if same value as tested one, exists on the same x axis (same column).
+        The moment an existing value on that column is found (returns False), function ends.
+
+        Parameters
+        ----------
+        k : integer
+            Provides vertical position of the z box (top, middle or bottom)
+        l : integer
+            Provides horizontal position of the z box (left, middle or right)
+        i : integer
+            Provides value that is going to be controlled
+
+        Returns
+        -------
+        Boolean
+
+        """
         for a in range(1,4):
                 for c in range(self.z+k,self.z+l):
                         try:
@@ -180,6 +374,20 @@ class Solver():
 
 
     def only_soln_y(self):
+        """
+        Calls check_only_y to check if possibility in coordinates (x,y,z) is the only one on that y axis (same row)
+        If it is the only possibility, updates self.found_solution.
+        Calls self.finalize_soln to remove this box as a empty box from self.unsolved_dicto
+
+        Parameters
+        ----------
+        None
+
+        Returns
+        -------
+        None
+
+        """
         positions_to_replace = []
         for a in range(1,4):
                 self.x = a
@@ -191,6 +399,20 @@ class Solver():
 
 
     def check_only_y(self):
+        """
+        Checks if possibility in coordinates (x,y,z) is the only one on that y axis (same row).
+        The moment that possibility exists somewhere else on that row (returns False), function ends.
+        Returns boolean to show whether its the only possiblity (True if it is), and value of which value is the only existing one.
+
+        Parameters
+        ----------
+        None
+
+        Returns
+        -------
+        Tuple containing boolean and integer
+
+        """
         result = False
         for b in range(1,4):
                 self.y = b
@@ -213,6 +435,24 @@ class Solver():
 
 
     def control_loop_y_v2(self,k,l,i):
+        """
+        Checks if same value as tested one, exists on the same y axis (same row).
+        The moment an existing value on that row is found (returns False), function ends.
+
+        Parameters
+        ----------
+        k : integer
+            Provides vertical position of the z box (top, middle or bottom)
+        l : integer
+            Provides horizontal position of the z box (left, middle or right)
+        i : integer
+            Provides value that is going to be controlled
+
+        Returns
+        -------
+        Boolean
+
+        """
         for b in range(1,4):
                 for c in range(self.z+k,self.z+l, 3):   #step = 3
                         try:
@@ -224,6 +464,20 @@ class Solver():
 
 
     def only_soln_z(self):
+        """
+        Calls check_only_z to check if possibility in coordinates (x,y,z) is the only one on that z box.
+        If it is the only possibility, updates self.found_solution.
+        Calls self.finalize_soln to remove this box as a empty box from self.unsolved_dicto
+
+        Parameters
+        ----------
+        None
+
+        Returns
+        -------
+        None
+
+        """
         positions_to_replace = []
         for c in range(1,10):
                 self.z = c
@@ -235,6 +489,20 @@ class Solver():
 
 
     def check_only_z(self):
+        """
+        Checks if possibility in coordinates (x,y,z) is the only one on that z box.
+        The moment that possibility exists somewhere else on that box (returns False), function ends.
+        Returns boolean to show whether its the only possiblity (True if it is), and value of which value is the only existing one.
+
+        Parameters
+        ----------
+        None
+
+        Returns
+        -------
+        Tuple containing boolean and integer
+
+        """
         result = False
         for a in range(1,4):
                 self.x = a
@@ -251,6 +519,20 @@ class Solver():
 
 
     def control_loop_z_v2(self,i):
+        """
+        Checks if same value as tested one, exists on the same z box.
+        The moment an existing value on that box is found (returns False), function ends.
+
+        Parameters
+        ----------
+        i : integer
+            Provides value that is going to be controlled
+
+        Returns
+        -------
+        Boolean
+
+        """
         for b in range(1,4):
                 for a in range(1,4):
                         try:
@@ -259,10 +541,24 @@ class Solver():
                         except:
                                 pass
         return True
+        
 
-
-    #solver(self) maintains the loop of controlling/updating possibilities, and placing absolutely certain values, until the grid is filled
     def solver(self):
+        """
+        Maintains the loop of controlling/updating possibilities, and placing absolutely certain values, until the grid is filled
+        Begins by updating self.unsolved_dicto and its list of all possibilities
+        After every ceratin placement, needs to update the new table of possibilities affected by this placement.
+        Order of place_known_solns , only_soln_x , only_soln_y and only_soln_z doesnt matter.
+
+        Parameters
+        ----------
+        None
+
+        Returns
+        -------
+        None
+
+        """
         while len(self.unsolved_dicto) != 0:  
                 self.update_possibilities()
                 self.place_known_solns()
@@ -272,5 +568,3 @@ class Solver():
                 self.only_soln_x()
                 self.update_possibilities()
                 self.only_soln_y()                
-
-
