@@ -1,23 +1,11 @@
-    # -*- coding: utf-8 -*-
-"""
-Created on Fri May 19 17:58:14 2023
-
-@author: vduon
-"""
-
-# -*- coding: utf-8 -*-
-"""
-Created on Sat Mar 18 11:50:10 2023
-
-@author: vduon
-"""
-
 import tkinter as tk
 from tkinter import scrolledtext
 import csv
 import random
 import winsound
 import pygame.mixer
+import time
+from tkinter import messagebox
 
 from Grid import Grid
 
@@ -25,6 +13,7 @@ class GUI():
     def __init__(self, initial_grid, solved_grid):    
         self.solved_sudoku = solved_grid # We define self.solved_sudoku as the dictionnary that is given in entry in the Main class
         self.actual_grid = initial_grid
+        
         self.grid = Grid(initial_grid, solved_grid)
         
         self.racine = tk.Tk()       
@@ -32,7 +21,7 @@ class GUI():
         self.creation_grid()        # Creation of the grid (entry boxes)
         self.creation_widgets_game()    # Creation of the other functionnalities of our game (solution, hint, timer, exit)
         self.debut_grid()       # Display the first answers to guide the player
-        
+        self.start_timer()
         
     def creation_widgets_game(self):   # Creation of the other functionalities of the game
         """doc
@@ -43,19 +32,22 @@ class GUI():
         
         self.solution_button = tk.Button(self.racine, text="SOLUTION", font="Calibri 12 bold")
         self.solution_button.grid(row=10, column = 1, columnspan = 2)
+        self.solution_button.bind('<Button-1>', self.show_solution)
         
         self.start_hint_button = tk.Button(self.racine, text="START HINT", font="Calibri 12 bold")
-        self.start_hint_button.grid(row=10, column=3, columnspan=3)        
+        self.start_hint_button.grid(row=10, column=3, columnspan=3)
+        self.start_hint_button.bind('<Button-1>', self.show_hint)        
         
         self.stop_hint_button = tk.Button(self.racine, text="STOP HINT", font="Calibri 12 bold")
         self.stop_hint_button.grid(row=10, column=5, columnspan=3) 
+        self.stop_hint_button.bind('<Button-1>', self.stop_hint)
         
         self.time = 0
         self.time_text = tk.Label(self.racine, text = "TIME : ", font = 'Calibri 12 bold')
         self.time_text.grid(row = 0, column = 2)
         self.timer_label = tk.Label(self.racine, text="",font = 'Calibri 12 bold', fg = 'red')
         self.timer_label.grid(row=0, column = 3)
-        self.start_timer()
+        #self.start_timer()
         
     def creation_grid(self):        # Creation of the entry boxes in a loop + the callback functions linked to them
         self.cells = {}
@@ -164,7 +156,7 @@ class GUI():
                 # We create the entry boxes
                 e = tk.Entry(self.cells[row, column], justify='center')
                 e.place(height=40, width=40) #Entry box a little bit smaller than background to see the colors
-                e.bind('<Return>', self.update_player_grid_v2)
+                e.bind('<Return>', self.update_player_grid)
                 #e.bind('<Button-1>', show_id)      Command just to check that the program returns us the id of the box we just cliked on
                 self.entries_ids.append(e.winfo_id())  # Add the id of the box into a list storing all the id of the 81 boxes   
                 self.entries_widget_list.append(e)
@@ -181,14 +173,18 @@ class GUI():
         """
         self.time += 1
         self.timer_label.config(text=str(self.time))
-        self.racine.after(1000, self.start_timer)
+        self.timer_id = self.racine.after(1000, self.start_timer)
+        
+    def stop_timer(self):
+        self.racine.after_cancel(self.timer_id)
+        
         
     def close_windows(self, event):     # Close all the actual Sudoku window if the button EXIT is pressed
         self.racine.destroy()
         
     def update_actual_sudoku_d3(self):
-        for position, box_id in self.dictionary_positions_id.items():
-            self.dictionary_positions_value[position] = self.dictionary_id_values[box_id]
+        for box_position, box_id in self.dictionary_positions_id.items():
+            self.dictionary_positions_value[box_position] = self.dictionary_id_values[box_id]
         
     def update_player_grid(self,event):     # Take into account the try that player did and check with the solved_grid if it is correct or not
         
@@ -196,39 +192,22 @@ class GUI():
         
         for box_id, box_value in self.dictionary_id_values.items():
             if widget.winfo_id() == box_id:
-                if widget.get() == None:
+                if len(widget.get()) == 0:
                     self.dictionary_id_values[box_id] = 0
                 else:
                     self.dictionary_id_values[box_id] = int(widget.get())
-                    
+        print(self.dictionary_id_values)
         self.update_actual_sudoku_d3()
         
         self.result_player_try = self.grid.evaluate_move(self.dictionary_positions_value)
         
 
-                
-            
-        '''
-        for key, value in self.solved_grid.items():
-                if (key, int(value)) == (self.changing_positions_value[0], self.changing_positions_value[1]):
-                    print('correct')
-                else:
-                    print('faux')
-        '''            
-        if not resultat:
-            widget.config(bg='red')
-        else:
-            widget.config(bg='green')
-            
-    def update_player_grid_v2(self, event):
-        
-        widget = event.widget
-        self.result_player_try = Grid(self.actual_grid, self.solved_sudoku)
-        
         if self.result_player_try:
-            widget.config(bg='green')
+            widget.config(bg='white')
         else:
             widget.config(bg='red')
+        
+        
             
     def show_id(self,event):        # OPTIONAL : Display the id of the box that has just been clicked on
         widget = event.widget
@@ -241,28 +220,36 @@ class GUI():
     
     def debut_grid(self):   # Display the value of certain box positions at the beginning of the game to guide the player
     
-    
-        #num_items = random.randint(1, len(self.solved_grid))
-        list_revealing_positions = []
-        selected_items = random.sample(self.solved_sudoku.items(), 38)
-        self.selected_dict = dict(selected_items)
-        print(self.selected_dict)
-        for box_position, box_id in self.dictionary_positions_id.items():
-            for position_to_reveal in self.selected_dict.keys():
-                if box_position == position_to_reveal:
-                    list_revealing_positions.append(box_position)      
         
-        '''
-        for i, box_value in enumerate(list_revealing_id):
-            self.entries_widget_list[i].insert(0, str(box_value))
-        '''
+        
         
         for position1, value in self.actual_grid.items():
             for position2, widget in self.dictionary_positions_widget.items():
                 if position1 == position2:
                     if value != 0:
                         widget.insert(0, str(value))
+                        
+        self.update_actual_sudoku_d3()
+    
+    def show_solution(self, event):
+        """
+        """
+        self.stop_timer()
+        for position1, value in self.solved_sudoku.items():
+            for position2, widget in self.dictionary_positions_widget.items():
+                if position1 == position2:
+                    widget.delete(0, tk.END)
+                    widget.insert(0, str(value))
+        messagebox.showinfo("Message Box", "You finished the game !")
         
-    
-     
-    
+        
+    def show_hint(self, event): # This is our TIMER
+        """
+        """
+        
+        #selected_items = random.sample(self.solved_sudoku.items(), 38)
+        
+    def stop_hint(self, event):
+        """
+        """
+        
