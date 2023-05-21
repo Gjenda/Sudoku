@@ -1,18 +1,14 @@
-# -*- coding: utf-8 -*-
-"""
-Created on Fri May 19 15:30:30 2023
-
-@author: vduon
-"""
-
-
 import tkinter as tk
 import winsound
+import pandas as pd
+import random
 
 from Solver import Solver
 from GUI_v2 import GUI
 
-class Main():
+
+class MainCode():
+    
     def __init__(self):
         self.root = tk.Tk()
         self.root.geometry("500x400")
@@ -21,66 +17,12 @@ class Main():
         
         self.button_height = 2
         self.button_width = 15
-        self.beginning_widgets(self.root)
+
+        self.sudoku = {}
+        self.solved_sudoku = {}
+        self.create_widgets(self.root)
         
-    def beginning_widgets(self, root):
-        
-        self.blankspace1 = tk.Label(root, text="")
-        self.blankspace1.configure(bg='lightblue')
-        self.blankspace1.pack()
-        
-        self.label1 = tk.Label(root,text="Welcome to the SUDOKU Game !", font = "Helvetica 16 bold" )
-        self.label1.configure(bg='lightblue')
-        self.label1.pack(side = tk.TOP)
-        
-        self.blankspace2 = tk.Label(root, text="")
-        self.blankspace2.configure(bg='lightblue')
-        self.blankspace2.pack()     
-        
-        self.blankspace3 = tk.Label(root, text="")
-        self.blankspace3.configure(bg='lightblue')
-        self.blankspace3.pack()   
-        
-        self.label2 = tk.Label(root, text="Choose a level : ", font = "Helevetica 13 bold")
-        self.label2.configure(bg='lightblue')
-        self.label2.pack(side = tk.TOP)     
-        
-        self.blankspace4 = tk.Label(root, text="\n")
-        self.blankspace4.configure(bg='lightblue')
-        self.blankspace4.pack()             
-        
-        self.easy_button = tk.Button(root, text = "EASY", height = self.button_height, width = self.button_width, font = "Calibri 11 bold")
-        self.easy_button.pack()
-        self.easy_button.bind('<Button-1>', self.easy_game)
-        
-        self.blankspace5 = tk.Label(root, text="\n")
-        self.blankspace5.configure(bg='lightblue')
-        self.blankspace5.pack()
-        
-        self.medium_button = tk.Button(root, text = "MEDIUM", height = self.button_height, width = self.button_width, font = "Calibri 11 bold")
-        self.medium_button.pack()
-        self.medium_button.bind('<Button-1>', self.medium_game)
-        '''
-        self.blankspace6 = tk.Label(root, text="")
-        self.blankspace6.configure(bg='lightblue')
-        self.blankspace6.pack()
-        
-        self.hard_button = tk.Button(root, text = "HARD", height = self.button_height, width = self.button_width, font = "Calibri 11 bold")
-        self.hard_button.pack()
-        self.hard_button.bind('<Button-1>', self.hard_game)
-        
-        def hard_game(self, event):
-        """
-        
-        """
-        self.sudoku_graph()
-        winsound.Beep(1040, 500)
-        '''
-        
-    def easy_game(self,event):
-        winsound.Beep(640, 500)
-        
-        self.sudoku = {(1,1,1):0 ,
+        self.easy_sudoku = {(1,1,1):0 ,
         (2,1,1):0 ,
         (3,1,1):0 ,
         (1,2,1):6 ,
@@ -161,15 +103,7 @@ class Main():
         (1,3,9):0 ,
         (2,3,9):0 ,
         (3,3,9):8 }
-
-        self.solved_grid = Solver(self.sudoku)
-        print(self.solved_grid)
-        GUI(self.solved_grid)
-        
-    def medium_game(self, event):
-        winsound.Beep(840, 500)
-        
-        self.sudoku = {(1,1,1):0 ,
+        self.hard_sudoku = {(1,1,1):0 ,
         (2,1,1):0 ,
         (3,1,1):0 ,
         (1,2,1):0 ,
@@ -251,13 +185,110 @@ class Main():
         (2,3,9):0 ,
         (3,3,9):5 }
 
-        self.solved_grid = Solver(self.sudoku)
-        print(self.solved_grid)
-        GUI(self.solved_grid)
+
+
+
+    def create_widgets(self, root):
+        
+        self.blankspace1 = tk.Label(root, text="")
+        self.blankspace1.configure(bg='lightblue')
+        self.blankspace1.pack()
+        
+        self.label1 = tk.Label(root,text="Welcome to the SUDOKU Game !", font = "Helvetica 16 bold" )
+        self.label1.configure(bg='lightblue')
+        self.label1.pack(side = tk.TOP)
+        
+        self.blankspace2 = tk.Label(root, text="")
+        self.blankspace2.configure(bg='lightblue')
+        self.blankspace2.pack()     
+        
+        self.blankspace3 = tk.Label(root, text="")
+        self.blankspace3.configure(bg='lightblue')
+        self.blankspace3.pack()   
+        
+        self.label2 = tk.Label(root, text="Choose a level : ", font = "Helevetica 13 bold")
+        self.label2.configure(bg='lightblue')
+        self.label2.pack(side = tk.TOP)     
+        
+        self.blankspace4 = tk.Label(root, text="")
+        self.blankspace4.configure(bg='lightblue')
+        self.blankspace4.pack()             
+        
+        self.blankspace7 = tk.Label(root, text="")
+        self.blankspace7.configure(bg='lightblue')
+        self.blankspace7.pack()
+        
+        self.easy_button = tk.Button(root, text = "EASY", height = self.button_height, width = self.button_width, font = "Calibri 11 bold")
+        self.easy_button.pack()
+        self.easy_button.bind('<Button-1>', self.easy_game)
+        
+        self.blankspace5 = tk.Label(root, text="")
+        self.blankspace5.configure(bg='lightblue')
+        self.blankspace5.pack()
+        
+        self.blankspace6 = tk.Label(root, text="")
+        self.blankspace6.configure(bg='lightblue')
+        self.blankspace6.pack()
+        
+        self.hard_button = tk.Button(root, text = "HARD", height = self.button_height, width = self.button_width, font = "Calibri 11 bold")
+        self.hard_button.pack()
+        self.hard_button.bind('<Button-1>', self.hard_game)
+
+        
     
+    def easy_game(self,event):
+        self.initiate_game(1)
+        winsound.Beep(640, 500)
+    
+        
+    def hard_game(self, event):
+        self.initiate_game(2)
+        winsound.Beep(840, 500)
+        
+    def create_dictionary(self):
+        k = 0
+        for y in range (1,10):    # Y axis => rows
+                for z in range (1,4):    # Z boxes (advancing horizontally)
+                        for x in range (1,4):    # X axis columns
+                                if y <= 3:
+                                        self.sudoku[(x,y,z)] = int(self.initial_values[k])
+                                elif y <= 6:
+                                        self.sudoku[(x,y-3,z+3)] = int(self.initial_values[k])
+                                else:
+                                        self.sudoku[(x,y-6,z+6)] = int(self.initial_values[k])
+                                k += 1
+
+    def initiate_game(self, k):
+        if k == 1:
+            
+            nRowsRead = 100  #an integer, or specify 'None' if want to read whole file
+            df1 = pd.read_csv(r"C:\VINH\INSA\2A\COURS\INFORMATICS\S2\PROJECT\MAIN_CODES\sudoku_1m.csv", delimiter=',', nrows = nRowsRead)   #REMOVE - need to fix directory and file name
+            df1.dataframeName = 'sudoku_1m.csv'
+            nRow, nCol = df1.shape
+        elif k == 2:
+            
+            nRowsRead = None  #an integer, or specify 'None' if want to read whole file
+            df1 = pd.read_csv(r"C:\VINH\INSA\2A\COURS\INFORMATICS\S2\PROJECT\MAIN_CODES\sudoku_1m.csv", delimiter=',', nrows = nRowsRead)   #REMOVE - need to fix directory and file name
+            df1.dataframeName = 'sudoku_1m.csv'
+            nRow, nCol = df1.shape
+            
+        
+        """
+        #put sudoku from file into self.sudoku
+        """
+        #row = random.randint(0, nRow - 1)
+        row = 2
+        self.initial_values = df1["quizzes"][row]   #its a list, with all values of the sudoku board, going left to right for each row
+        #self.create_dictionary()
+    
+    
+        self.solver = Solver(self.sudoku)
+        self.solved_sudoku = self.solver.found_solution.copy()
+        
+        self.gui = GUI(self.sudoku, self.solved_sudoku)
 
 
 
 if __name__ == "__main__":
-    app = Main()
+    app = MainCode()
     app.root.mainloop()
