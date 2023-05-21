@@ -1,3 +1,17 @@
+    # -*- coding: utf-8 -*-
+"""
+Created on Fri May 19 17:58:14 2023
+
+@author: vduon
+"""
+
+# -*- coding: utf-8 -*-
+"""
+Created on Sat Mar 18 11:50:10 2023
+
+@author: vduon
+"""
+
 import tkinter as tk
 from tkinter import scrolledtext
 import csv
@@ -228,7 +242,9 @@ class GUI():
                 if position1 == position2:
                     if value != 0:
                         widget.insert(0, str(value))
-                        
+                    for box_id, box_widget in self.dictionary_widget_id.items():
+                        if box_widget == widget:
+                            self.dictionary_id_values[box_id] = value
         self.update_actual_sudoku_d3()
     
     def show_solution(self, event):
@@ -237,6 +253,7 @@ class GUI():
         self.stop_timer()
         for position1, value in self.solved_sudoku.items():
             for position2, widget in self.dictionary_positions_widget.items():
+                print(position2, widget)
                 if position1 == position2:
                     widget.delete(0, tk.END)
                     widget.insert(0, str(value))
@@ -246,10 +263,25 @@ class GUI():
     def show_hint(self, event): # This is our TIMER
         """
         """
+        self.changing_item = []
+        selected_item= random.sample(self.solved_sudoku.items(), 1)
+        print(selected_item)
+        self.changing_item_dico = dict(selected_item)
+        print(self.changing_item_dico)
+        for position, value in self.changing_item_dico.items():
+            self.changing_item.append(position)
+            self.changing_item.append(value)
+        for box_position, widget in self.dictionary_positions_widget.items():
+            print(box_position, widget)
+            if box_position == self.changing_item[0]:
+                widget.insert(0, str(self.changing_item[1]))
         
-        #selected_items = random.sample(self.solved_sudoku.items(), 38)
         
     def stop_hint(self, event):
         """
         """
         
+        
+    
+     
+    
